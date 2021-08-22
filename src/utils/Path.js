@@ -42,7 +42,7 @@ class Path extends Path2D {
 
   get pointsScaled () {
     return this._points.map(point => {
-      return `${Math.round(point.x * this.scale)},${Math.round(point.y * this.scale)}`
+      return `${Math.round(point.x / this.scale)},${Math.round(point.y / this.scale)}`
     })
   }
 }

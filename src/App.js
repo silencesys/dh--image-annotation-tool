@@ -3,7 +3,7 @@ import Draggable from 'react-draggable'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { stackoverflowLight } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer } from '@fortawesome/pro-duotone-svg-icons'
+import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer, faSearch } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
 import Box from './utils/Box'
 import Path from './utils/Path'
@@ -22,9 +22,9 @@ const App = () => {
   const [scale, setScale] = useState(1)
   const [points, setPoints] = useState([])
   const [objects, setObjects] = useState([])
-  const [canvasPosition, setCanvasPosition] = useState(null)
+  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 })
   const [currentAction, setCurrentAction] = useState('cursor')
-  const [image, setImage] = useState(null)
+  const timer = useRef(null)
 
   useEffect(() => {
     // Add event handling for canvases and box reseting
@@ -36,7 +36,7 @@ const App = () => {
         return obj
       }))
     }
-    drawingLayer.current.addEventListener('contextmenu', (e) => {
+    document.addEventListener('contextmenu', (e) => {
       e.preventDefault()
     })
     if (currentAction === 'erasing') {
@@ -52,14 +52,10 @@ const App = () => {
   }, [higlightLayer, drawingLayer, currentAction])
 
   useEffect(() => {
-    setCanvasPosition(null)
-  }, [canvasPosition])
-
-  useEffect(() => {
     if (points.length !== 0 && currentAction !== 'pathDrawing') {
       drawPathObject(null, true)
     }
-  }, [currentAction, points])
+  }, [currentAction, points, canvasPosition])
 
   useEffect(() => {
     // Redraw the boxes each time the array is updated.
@@ -86,17 +82,8 @@ const App = () => {
 
   useEffect(() => {
     if (canvasWrapper) {
-      drawImageInBackgroundLayer(backgroundSettings.imgUrl, scale)
-      const context = higlightLayer.current.getContext('2d')
-      context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
-      objects.forEach(box => {
-        const type = box.name.toLowerCase()
-        const methods = {
-          box: drawBox,
-          path: drawPath
-        }
-        methods[type](context, box)
-      })
+      canvasWrapper.current.style.transformOrigin = `${canvasPosition.x}px ${canvasPosition.y}px`
+      canvasWrapper.current.style.transform = `scale(${scale})`
     }
   }, [backgroundSettings, scale])
 
@@ -137,32 +124,24 @@ const App = () => {
     image.onload = () => {
       let downScale = 1
       const { naturalHeight, naturalWidth } = image
-      if (scale === null) {
-        downScale = image.naturalHeight > (window.innerHeight - 100)
-          ? Math.floor(image.naturalHeight / (window.innerHeight - 100))
-          : 1
-        setScale(downScale)
-      } else {
-        downScale = scale
-      }
+      downScale = image.naturalHeight > (window.innerHeight - 100)
+        ? Math.floor(image.naturalHeight / (window.innerHeight - 100)) * 0.02
+        : 1
+      setScale(downScale)
 
       // Set size for each layer of the drawing board.
-      backgroundLayer.current.height = naturalHeight / downScale
-      backgroundLayer.current.width = naturalWidth / downScale
-      drawingLayer.current.height = naturalHeight / downScale
-      drawingLayer.current.width = naturalWidth / downScale
-      higlightLayer.current.height = naturalHeight / downScale
-      higlightLayer.current.width = naturalWidth / downScale
+      backgroundLayer.current.height = naturalHeight
+      backgroundLayer.current.width = naturalWidth
+      drawingLayer.current.height = naturalHeight
+      drawingLayer.current.width = naturalWidth
+      higlightLayer.current.height = naturalHeight
+      higlightLayer.current.width = naturalWidth
 
-      const downScaledWidth = naturalWidth / downScale
-      const downScaledHeight = naturalHeight / downScale
+      setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
 
-      if (backgroundSettings.lrx === 0 || backgroundSettings.lry === 0) {
-        setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
-      }
-
-      const context = backgroundLayer.current.getContext('2d')
-      context.drawImage(image, 0, 0, naturalWidth, naturalHeight, 0, 0, downScaledWidth, downScaledHeight)
+      const context = backgroundLayer.current.getContext('2d', { alpha: false })
+      context.imageSmoothingEnabled = false
+      context.drawImage(image, 0, 0, naturalWidth, naturalHeight)
 
       canvasWrapper.current.style.display = 'block'
     }
@@ -193,7 +172,7 @@ const App = () => {
     context.lineWidth = 2
     context.strokeStyle = config.temporaryStrokeFill
     context.fillStyle = config.temporaryFill
-    context.arc(point.x, point.y, 4, 0, 2 * Math.PI)
+    context.arc(point.x / scale, point.y / scale, 4 / scale, 0, 2 * Math.PI)
     context.stroke()
     context.fill()
   }
@@ -231,9 +210,9 @@ const App = () => {
     context.strokeStyle = path.strokeFill
     path.points.forEach((coords, index) => {
       if (index === 0) {
-        path.moveTo(coords.x, coords.y)
+        path.moveTo(coords.x / scale, coords.y / scale)
       } else {
-        path.lineTo(coords.x, coords.y)
+        path.lineTo(coords.x / scale, coords.y / scale)
       }
     })
     path.closePath()
@@ -245,7 +224,8 @@ const App = () => {
    * Draws a box or a point on the canvas.
    * @param {Object} event - The event that triggered the drawing.
    */
-  const startDrawingOrPoiting = ({ clientX, clientY }) => {
+  const startDrawingOrPoiting = (e) => {
+    const { clientX, clientY } = e
     const bounding = drawingLayer.current.getBoundingClientRect()
     if (currentAction === 'rectangleDrawing') {
       setRectCoords(state => ({ ...state, x: clientX - bounding.left, y: clientY - bounding.top }))
@@ -267,7 +247,7 @@ const App = () => {
       context.strokeStyle = config.temporaryStrokeFill
       context.fillStyle = config.temporaryFill
       context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
-      context.rect(rectCoords.x, rectCoords.y, clientX - bounding.left - rectCoords.x, clientY - bounding.top - rectCoords.y)
+      context.rect(rectCoords.x / scale, rectCoords.y / scale, (clientX - bounding.left - rectCoords.x) / scale, (clientY - bounding.top - rectCoords.y) / scale)
       context.stroke()
       context.fill()
       setIsDrawing(true)
@@ -288,7 +268,7 @@ const App = () => {
       const realW = width > 0 ? width : rectCoords.x - realX
       const realH = height > 0 ? height : rectCoords.y - realY
 
-      const box = new Box(realX, realY, realW, realH, config.strokeWidth, scale)
+      const box = new Box(realX / scale, realY / scale, realW / scale, realH / scale, config.strokeWidth, 1)
       box.fill = config.fill
       box.strokeFill = config.strokeFill
       setObjects(state => [...state, box])
@@ -352,13 +332,40 @@ const App = () => {
     }
   }
 
+  const handleClicks = (e) => {
+    if (currentAction === 'zoom') {
+      handleZooming(e)
+    }
+  }
+
   const handleZooming = (e) => {
-    if (currentAction === 'cursor') {
-      setScale(state => {
-        let scale = state + e.deltaY * -0.01
-        scale = Math.min(Math.max(1, scale), 100)
-        return scale
-      })
+    if (currentAction === 'zoom') {
+      // I'm unable to calculate the scale position on the canvas as the numbers
+      // sometimes wildly jumps from one to another.
+      const bounding = drawingLayer.current.getBoundingClientRect()
+      console.log(e.clientX, bounding.left)
+      console.log(e)
+      if (e.ctrlKey) {
+        const posX = -Math.round((e.clientX - bounding.left * scale))
+        const posY = -Math.round((e.clientY - bounding.top * scale))
+        console.log(posX, posY)
+        setCanvasPosition({ x: posX, y: posY })
+        setScale(state => {
+          let scale = state - 0.2
+          scale = Math.round(Math.min(Math.max(0.1, scale), 2) * 100) / 100
+          return scale
+        })
+      } else {
+        setScale(state => {
+          let scale = state + 0.2
+          scale = Math.round(Math.min(Math.max(0.1, scale), 2) * 100) / 100
+          return scale
+        })
+        const posX = -Math.round((e.clientX - bounding.left))
+        const posY = -Math.round((e.clientY - bounding.top))
+        console.log(posX, posY)
+        setCanvasPosition({ x: posX, y: posY })
+      }
     }
   }
 
@@ -385,44 +392,45 @@ const App = () => {
 
   return (
     <div>
-      <div className='imageEditor'>
+      <div className='imageEditor' onMouseDown={handleClicks}>
         <Draggable
           onStart={() => setisDragging(true)}
           onStop={() => setisDragging(false)}
           disabled={currentAction !== 'cursor'}
-          position={canvasPosition}
+          defaultPosition={{ x: 10, y: 10 }}
+          offsetParent={document.getElementsByTagName('body')[0]}
         >
-          <div className={`imageEditor_Canvas ${currentAction === 'cursor' && 'cursor_Hand'}`} ref={canvasWrapper}>
-            <canvas width={400} height={400} ref={backgroundLayer}>
-              Background layer
-            </canvas>
-            <canvas
-              width={400}
-              height={400}
-              ref={higlightLayer}
-              className='fixedLayer'
-              onMouseMove={higlightHoveredObjects}
-              onMouseDown={removeObjectFromCanvas}
-              onWheel={handleZooming}
-            >
-              Higlights layer
-            </canvas>
-            <canvas
-              width={400}
-              height={400}
-              onWheel={handleZooming}
-              onMouseDown={startDrawingOrPoiting}
-              onMouseUp={drawRectangle}
-              onMouseMove={drawTemporaryRectangle}
-              onMouseLeave={drawRectangle}
-              onTouchStart={startDrawingOrPoiting}
-              onTouchEnd={drawRectangle}
-              onTouchMove={drawTemporaryRectangle}
-              ref={drawingLayer}
-              className='fixedLayer'
-            >
-              Drawing layer
-            </canvas>
+          <div>
+            <div className={`imageEditor_Canvas ${currentAction === 'cursor' && 'cursor_Hand'}`} ref={canvasWrapper}>
+              <canvas width={400} height={400} ref={backgroundLayer}>
+                Background layer
+              </canvas>
+              <canvas
+                width={400}
+                height={400}
+                ref={higlightLayer}
+                className='fixedLayer'
+                onMouseMove={higlightHoveredObjects}
+                onMouseDown={removeObjectFromCanvas}
+              >
+                Higlights layer
+              </canvas>
+              <canvas
+                width={400}
+                height={400}
+                onMouseDown={startDrawingOrPoiting}
+                onMouseUp={drawRectangle}
+                onMouseMove={drawTemporaryRectangle}
+                onMouseLeave={drawRectangle}
+                onTouchStart={startDrawingOrPoiting}
+                onTouchEnd={drawRectangle}
+                onTouchMove={drawTemporaryRectangle}
+                ref={drawingLayer}
+                className='fixedLayer'
+              >
+                Drawing layer
+              </canvas>
+            </div>
           </div>
         </Draggable>
       </div>
@@ -462,7 +470,13 @@ const App = () => {
           >
             <FontAwesomeIcon icon={faSquare} />
           </button>
-          {scale}
+          <button
+            onClick={() => setCurrentAction('zoom')}
+            className={currentAction === 'zoom' && 'toolsPane__Confirmation'}
+            title='Rectangle drawing tool, click and drag to draw a rectangle.'
+          >
+            <FontAwesomeIcon icon={faSearch} />
+          </button>
         </div>
       </Draggable>
       <Draggable
