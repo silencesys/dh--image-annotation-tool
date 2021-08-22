@@ -1,38 +1,154 @@
-.App {
-  text-align: center;
+body {
+  overflow: hidden;
 }
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.imageEditor {
+    width: 100vw;
+    height: 100vh;
+    background: rgb(var(--grey-100));
+    display: flex;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.imageEditor_Canvas {
+  margin: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+  border-radius: .5rem;
+  display: none;
+  position: relative;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.cursor_Hand {
+  cursor: grab;
+}
+.imageEditor_Canvas canvas {
+  display: block;
+}
+.fixedLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.toolsPane {
+  position: fixed;
+  right: calc(80% - (50px / 2));
+  top: 200px;
+  background-color: rgb(var(--white));
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-radius: .5rem;
+  overflow: hidden;
+  z-index: 99;
+}
+.toolsPane__Head,
+.optionsPane__Head {
+  padding: .5rem .5rem;
+  cursor: move;
+  border-bottom: 1px solid rgb(var(--grey-200));
+}
+.toolsPane button {
+  padding: 1rem;
+  font-size: 1.1rem;
+  width: 100%;
+  display: block;
+  border: none;
+  background-color: rgb(var(--white));
+  border-bottom: 1px solid rgb(var(--grey-200));
+  cursor: pointer;
+  transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toolsPane button.toolsPane__Confirmation {
+  background-color: rgb(var(--grey-100));
+}
+.toolsPane button:hover {
+  background-color: rgb(var(--grey-100));
+  color: rgb(var(--red-500));
+}
+.optionsPane {
+  position: fixed;
+  right: calc(50% - (500px / 2));
+  top: 200px;
+  background-color: rgb(var(--white));
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-radius: .5rem;
+  width: 600px;
+  z-index: 99;
+}
+.optionsPane__pre {
+  max-height: 150px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  font-size: .9rem;
+  border-top: 1px dashed rgb(var(--grey-200));
+  border-bottom: 1px dashed rgb(var(--grey-200));
+}
+.optionsPane__Description {
+  color: rgb(var(--grey-500));
+  font-size: .9rem;
+  padding: 0 1rem;
+}
+.optionsPane__Head__Title {
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-weight: normal;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+.optionsPane_Head__DragMe {
+  font-size: .8rem;
+  color: rgb(var(--grey-300));
+  text-transform: uppercase;
+  float: right;
+  display: none;
+}
+.optionsPane__Head:hover .optionsPane_Head__DragMe {
+  display: inline-block;
+}
+.optionsPane__Icon {
+  margin-right: .5rem;
+}
+.optoinsPane__ClipboardButton {
+  float: right;
+  font-size: .8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
 }
-
-.App-link {
-  color: #61dafb;
+.optionsPane__ClipboardButton__Icon {
+  font-size: 1.1rem;
+  margin-right: .5rem;
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.optoinsPane__ClipboardButton:hover {
+  color: rgb(var(--red-500));
+}
+.optionsPane__ButtonRow {
+  padding: 1rem;
+}
+.optionsPane__ButtonRow button {
+  padding: .75rem 1rem;
+  background-color: rgb(var(--white));
+  color: rgb(var(--black));
+  border-radius: .5rem;
+  border: 1px solid rgb(var(--grey-200));
+  font-size: .9rem;
+  margin-left: 1rem;
+  cursor: pointer;
+  transition: all .3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.optionsPane__ButtonRow button:first-of-type {
+  margin: 0;
+}
+.optionsPane__ButtonRow button.primary {
+  background-color: rgb(var(--blue-500));
+  padding: .75rem 1rem;
+  color: rgb(var(--white));
+  border-radius: .5rem;
+  border: none;
+  font-size: .9rem;
+}
+.optionsPane__ButtonRow button:hover,
+.optionsPane__ButtonRow button.primary:hover {
+  background-color: rgba(var(--red-500));
+  color: rgb(var(--white));
 }
