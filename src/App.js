@@ -608,9 +608,9 @@ const App = () => {
           </p>
           <div className='optionsPane__ButtonRow'>
             <button onClick={chooseFile} className='primary'>
-              Open file
+              Open image
             </button>
-            <button onClick={resetDrawings} title='Erases everything from canvas.'>
+            <button onClick={resetDrawings} title='Erase everything from canvas.'>
               Reset
             </button>
             <button className='optoinsPane__ClipboardButton' onClick={() => copyTextToClipboard(code)}>
