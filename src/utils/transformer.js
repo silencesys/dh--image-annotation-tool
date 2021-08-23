@@ -86,4 +86,4 @@ const renderer = ({ minScale, maxScale, element, scaleSensitivity = 10 }) => {
   return Object.assign({}, canZoom(state), canPan(state))
 }
 
-module.exports = { renderer }
+export { renderer }
