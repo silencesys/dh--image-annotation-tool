@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import SyntaxHighlighter from 'react-syntax-highlighter'
-import { stackoverflowLight } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { stackoverflowLight, stackoverflowDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer, faSearch } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
@@ -121,8 +121,45 @@ const App = () => {
    * changes.
    */
   useEffect(() => {
+    /**
+     * Draw a path on the canvas.
+     * @param {object} context
+     * @param {object} path
+    */
+    const drawPath = (context, path) => {
+      context.beginPath()
+      context.lineWidth = path.stroke
+      context.fillStyle = path.fill
+      context.strokeStyle = path.strokeFill
+      path.points.forEach((coords, index) => {
+        if (index === 0) {
+          path.moveTo(coords.x, coords.y)
+        } else {
+          path.lineTo(coords.x, coords.y)
+        }
+      })
+      path.closePath()
+      context.stroke(path)
+      context.fill(path)
+      setPoints([])
+    }
+    /**
+     * Draw a box on the canvas.
+     * @param {object} context
+     * @param {object} box
+    */
+    const drawBox = (context, box) => {
+      context.beginPath()
+      context.lineWidth = box.stroke
+      context.strokeStyle = box.strokeFill
+      context.fillStyle = box.fill
+      box.rect(box.x, box.y, box.w, box.h)
+      context.stroke(box)
+      context.fill(box)
+    }
+
     const context = storageLayer.current.getContext('2d')
-    context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
+    context.clearRect(0, 0, storageLayer.current.width, storageLayer.current.height)
     objects.forEach(box => {
       const type = box.name.toLowerCase()
       const methods = {
@@ -131,20 +168,35 @@ const App = () => {
       }
       methods[type](context, box)
     })
-  }, [objects])
+  }, [objects, scale])
 
   /**
    * Register an effect that will be triggered each time user adds a new point
    * to the canvas.
    */
   useEffect(() => {
+    /**
+     * Draw a point on the canvas.
+     * @param {object} context
+     * @param {object} point
+    */
+    const drawPoint = (context, point) => {
+      context.beginPath()
+      context.lineWidth = 2
+      context.strokeStyle = config.temporaryStrokeFill
+      context.fillStyle = config.temporaryFill
+      context.arc(point.x / scale, point.y / scale, 4 / scale, 0, 2 * Math.PI)
+      context.stroke()
+      context.fill()
+    }
+
     // Draw points with each new point added.
     const context = drawingLayer.current.getContext('2d')
     context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
     points.forEach(point => {
       drawPoint(context, point)
     })
-  }, [points])
+  }, [points, scale])
 
   /**
    * Get file name of the image
@@ -162,6 +214,7 @@ const App = () => {
   const chooseFile = () => {
     const file = document.createElement('input')
     file.type = 'file'
+    file.accept = '.png, .jpg, .jpeg, .gif'
     file.click()
     file.addEventListener('change', item => {
       const reader = new FileReader()
@@ -184,7 +237,6 @@ const App = () => {
    * @returns {void}
    */
   const drawImageInBackgroundLayer = (url) => {
-    console.log('loop')
     const image = new Image()
     image.src = url
     image.onload = () => {
@@ -208,36 +260,6 @@ const App = () => {
   }
 
   /**
-   * Draw a box on the canvas.
-   * @param {object} context
-   * @param {object} box
-  */
-  const drawBox = (context, box) => {
-    context.beginPath()
-    context.lineWidth = box.stroke
-    context.strokeStyle = box.strokeFill
-    context.fillStyle = box.fill
-    box.rect(box.x, box.y, box.w, box.h)
-    context.stroke(box)
-    context.fill(box)
-  }
-
-  /**
-   * Draw a point on the canvas.
-   * @param {object} context
-   * @param {object} point
-  */
-  const drawPoint = (context, point) => {
-    context.beginPath()
-    context.lineWidth = 2
-    context.strokeStyle = config.temporaryStrokeFill
-    context.fillStyle = config.temporaryFill
-    context.arc(point.x / scale, point.y / scale, 4 / scale, 0, 2 * Math.PI)
-    context.stroke()
-    context.fill()
-  }
-
-  /**
    * Draw a path on the canvas.
   */
   const drawPathObject = (e, skipTool = false) => {
@@ -245,7 +267,7 @@ const App = () => {
       (currentAction === 'pathDrawing' && points.length > 2) ||
       (skipTool && points.length > 2)
     ) {
-      const path = new Path(3, scale, `${backgroundSettings.fileName}-${objects.length}`)
+      const path = new Path(3, scale)
       path.points = points
       path.fill = config.fill
       path.strokeFill = config.strokeFill
@@ -256,28 +278,6 @@ const App = () => {
     if (!skipTool) {
       setCurrentAction('pathDrawing')
     }
-  }
-
-  /**
-   * Draw a path on the canvas.
-   * @param {object} context
-   * @param {object} path
-  */
-  const drawPath = (context, path) => {
-    context.beginPath()
-    context.lineWidth = path.stroke
-    context.fillStyle = path.fill
-    context.strokeStyle = path.strokeFill
-    path.points.forEach((coords, index) => {
-      if (index === 0) {
-        path.moveTo(coords.x / scale, coords.y / scale)
-      } else {
-        path.lineTo(coords.x / scale, coords.y / scale)
-      }
-    })
-    path.closePath()
-    context.stroke(path)
-    context.fill(path)
   }
 
   /**
@@ -381,7 +381,6 @@ const App = () => {
       for (const [index, object] of objects.entries()) {
         if (context.isPointInPath(object, e.nativeEvent.offsetX, e.nativeEvent.offsetY)) {
           setSelectedObject(object)
-          console.log(selectedObject)
           storageLayer.current.style.cursor = 'pointer'
           return setObjects(state => {
             state[index].strokeFill = config.temporaryStrokeFill
@@ -439,6 +438,7 @@ const App = () => {
       erasing: 'default'
     }
     canvasWrapper.current.style.cursor = cursorMap[currentAction]
+
   }, [currentAction])
 
   /**
@@ -495,6 +495,14 @@ const App = () => {
   }) + `
   </surface>
 </facsimile>`
+
+  const codeBlock = () => {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return stackoverflowDark
+    } else {
+      return stackoverflowLight
+    }
+  }
 
   return (
     <div>
@@ -597,7 +605,7 @@ const App = () => {
             <SyntaxHighlighter
               language='xml'
               className='optionsPane__pre'
-              style={stackoverflowLight}
+              style={codeBlock()}
               showLineNumbers
             >
               {code}
@@ -621,7 +629,7 @@ const App = () => {
         </div>
       </Draggable>
       <div className='footer'>
-        This project was developed by <a href='https://rocek.dev'>Martin Roček</a>, source code is available on <a href='https://github.com' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
+        This project was developed by <a href='https://rocek.dev'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
       </div>
     </div>
   )

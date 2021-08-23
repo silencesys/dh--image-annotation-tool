@@ -1,6 +1,6 @@
 {
-  "short_name": "Image Annotation Tool",
-  "name": "Image annotation tool",
+  "short_name": "IMA",
+  "name": "Image Annotation Tool",
   "icons": [
     {
       "src": "icon.ico",

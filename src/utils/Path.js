@@ -37,7 +37,9 @@ class Path extends Path2D {
   }
 
   get points () {
-    return this._points
+    return this._points.map(point => {
+      return { x: point.x / this.scale, y: point.y / this.scale }
+    })
   }
 
   get pointsScaled () {
