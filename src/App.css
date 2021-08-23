@@ -17,7 +17,7 @@ body {
 }
 .imageEditor__ChooseFile::after {
   display: block;
-  content: 'Start by opening the file. 🖥';
+  content: 'Start by opening a file. 🖥';
   position: absolute;
   top: calc(50% - 1rem);
   left: calc(50% - 200px);
