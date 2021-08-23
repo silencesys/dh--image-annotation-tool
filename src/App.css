@@ -6,16 +6,35 @@ body {
     height: 100vh;
     background: rgb(var(--grey-100));
     display: flex;
+    position: relative;
 }
 .imageEditor_Canvas {
-  margin: auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
   border-radius: .5rem;
   display: none;
   position: relative;
+  z-index: 1;
+}
+.imageEditor__ChooseFile::after {
+  display: block;
+  content: 'Start by opening the file. 🖥';
+  position: absolute;
+  top: calc(50% - 1rem);
+  left: calc(50% - 200px);
+  text-align: center;
+  width: 400px;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  color:rgb(var(--grey-300));
 }
 .cursor_Hand {
   cursor: grab;
+}
+.cursor_zoomIn {
+  cursor: zoom-in;
+}
+.cursor_zoomOut {
+  cursor: zoom-out;
 }
 .imageEditor_Canvas canvas {
   display: block;
@@ -27,7 +46,7 @@ body {
 }
 .toolsPane {
   position: fixed;
-  right: calc(80% - (50px / 2));
+  left: 3rem;
   top: 200px;
   background-color: rgb(var(--white));
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
@@ -61,8 +80,8 @@ body {
 }
 .optionsPane {
   position: fixed;
-  right: calc(50% - (500px / 2));
-  top: 200px;
+  right: 3rem;
+  bottom: 3rem;
   background-color: rgb(var(--white));
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
   border-radius: .5rem;
@@ -151,4 +170,18 @@ body {
 .optionsPane__ButtonRow button.primary:hover {
   background-color: rgba(var(--red-500));
   color: rgb(var(--white));
+}
+.footer {
+  position: absolute;
+  bottom: 3rem;
+  left: 3rem;
+  z-index: 0;
+  font-size: .8rem;
+  color:rgb(var(--grey-400));
+}
+.footer a {
+  color:rgb(var(--grey-400));
+}
+.footer a:hover {
+  color: rgb(var(--blue-500));
 }
