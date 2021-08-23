@@ -6,7 +6,7 @@ connect the image to the text. This tool was developed to help student and teach
 
 
 ## Usage
-Visit [the app website](/image-annotation-tool/), open your image and start annotating.
+Visit [the app website](http://ima.coders.tools/), open your image and start annotating.
 The app can be installed as PWA (Progressive Web App).
 
 ## Development
