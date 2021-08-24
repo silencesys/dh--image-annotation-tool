@@ -13,6 +13,7 @@ class Box extends Path2D {
     this._strokeFill = '#000'
     this.name = 'Box'
     this.randomNumber = getRandomNumber()
+    this._centre = { x: 0, y: 0 }
   }
 
   get id () {
@@ -39,6 +40,14 @@ class Box extends Path2D {
     }
   }
 
+  get currentCentre () {
+    return this._centre
+  }
+
+  set currentCentre (centre) {
+    this._centre = centre
+  }
+
   set fill (fill) {
     this._fill = fill
   }
@@ -53,6 +62,28 @@ class Box extends Path2D {
 
   get strokeFill () {
     return this._strokeFill
+  }
+
+  // Above needs refactor
+
+  draw (context, self = true, callback = null) {
+    context.beginPath()
+    context.lineWidth = this.stroke
+    context.strokeStyle = this.strokeFill
+    context.fillStyle = this.fill
+    if (self) {
+      this.rect(this.x, this.y, this.w, this.h)
+      context.stroke(this)
+      context.fill(this)
+    } else {
+      context.rect(this.x, this.y, this.w, this.h)
+      context.stroke()
+      context.fill()
+    }
+
+    if (typeof callback === 'function') {
+      callback(this.id)
+    }
   }
 }
 

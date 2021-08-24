@@ -3,7 +3,7 @@ import Draggable from 'react-draggable'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { stackoverflowLight, stackoverflowDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer, faSearch } from '@fortawesome/pro-duotone-svg-icons'
+import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer, faSearch, faHandPaper } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
 import Box from './utils/Box'
 import Path from './utils/Path'
@@ -45,7 +45,16 @@ const App = () => {
   // Set global scale for the canvas.
   const [scale, setScale] = useState(1)
   // Store current state of the editor.
-  const [currentAction, setCurrentAction] = useState('cursor')
+  const [currentAction, setCurrentAction] = useState('hand')
+  // Cursor map for certain actions.
+  const cursorMap = {
+    zoom: 'zoom-in',
+    hand: 'grab',
+    pathDrawing: 'crosshair',
+    rectangleDrawing: 'crosshair',
+    erasing: 'default',
+    cursor: 'default'
+  }
 
   /**
    * Register the renderer transformer
@@ -92,7 +101,7 @@ const App = () => {
       e.preventDefault()
     })
     // Move the storage canvas to front, so user can delete it's content.
-    if (currentAction === 'erasing') {
+    if (currentAction === 'erasing' || currentAction === 'cursor') {
       if (storageLayer.current) {
         storageLayer.current.style.zIndex = '1'
       }
@@ -121,52 +130,10 @@ const App = () => {
    * changes.
    */
   useEffect(() => {
-    /**
-     * Draw a path on the canvas.
-     * @param {object} context
-     * @param {object} path
-    */
-    const drawPath = (context, path) => {
-      context.beginPath()
-      context.lineWidth = path.stroke
-      context.fillStyle = path.fill
-      context.strokeStyle = path.strokeFill
-      path.points.forEach((coords, index) => {
-        if (index === 0) {
-          path.moveTo(coords.x, coords.y)
-        } else {
-          path.lineTo(coords.x, coords.y)
-        }
-      })
-      path.closePath()
-      context.stroke(path)
-      context.fill(path)
-      setPoints([])
-    }
-    /**
-     * Draw a box on the canvas.
-     * @param {object} context
-     * @param {object} box
-    */
-    const drawBox = (context, box) => {
-      context.beginPath()
-      context.lineWidth = box.stroke
-      context.strokeStyle = box.strokeFill
-      context.fillStyle = box.fill
-      box.rect(box.x, box.y, box.w, box.h)
-      context.stroke(box)
-      context.fill(box)
-    }
-
     const context = storageLayer.current.getContext('2d')
     context.clearRect(0, 0, storageLayer.current.width, storageLayer.current.height)
-    objects.forEach(box => {
-      const type = box.name.toLowerCase()
-      const methods = {
-        box: drawBox,
-        path: drawPath
-      }
-      methods[type](context, box)
+    objects.forEach(object => {
+      object.draw(context)
     })
   }, [objects, scale])
 
@@ -365,9 +332,14 @@ const App = () => {
    * Remove object from teh canvas.
   */
   const removeObjectFromCanvas = () => {
-    if (selectedObject) {
-      setObjects(state => state.filter(object => object.id !== selectedObject.id))
-      setSelectedObject(null)
+    if (selectedObject !== null) {
+      if (currentAction === 'erasing') {
+        setObjects(state => state.filter(object => object.id !== selectedObject.id))
+        setSelectedObject(null)
+      } else if (currentAction === 'cursor') {
+        setObjects(state => state.filter(object => object.id !== selectedObject.id))
+        setIsDraggingObject(true)
+      }
     }
   }
 
@@ -376,17 +348,19 @@ const App = () => {
    * @param {Object} event - The event that triggered the highlighting.
    */
   const higlightHoveredObjects = (e) => {
-    if (currentAction === 'erasing') {
+    if (!isDraggingObject && (currentAction === 'erasing' || currentAction === 'cursor')) {
       const context = storageLayer.current.getContext('2d')
       for (const [index, object] of objects.entries()) {
         if (context.isPointInPath(object, e.nativeEvent.offsetX, e.nativeEvent.offsetY)) {
-          setSelectedObject(object)
-          storageLayer.current.style.cursor = 'pointer'
-          return setObjects(state => {
+          object.currentCentre = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY }
+          storageLayer.current.style.cursor = currentAction === 'erasing' ? 'pointer' : 'move'
+          setObjects(state => {
             state[index].strokeFill = config.temporaryStrokeFill
             state[index].fill = config.temporaryFill
             return [...state]
           })
+          setSelectedObject(object)
+          break
         } else if (selectedObject) {
           setSelectedObject(null)
           storageLayer.current.style.cursor = 'default'
@@ -397,11 +371,67 @@ const App = () => {
           })
         }
       }
-
       if (!selectedObject) {
         storageLayer.current.style.cursor = 'default'
       }
     }
+
+    if (e.buttons === 1 && currentAction === 'cursor') {
+      return dragObjectsOnCanvas(e)
+    }
+  }
+
+  const [isDraggingObject, setIsDraggingObject] = useState(false)
+
+  const dragObjectsOnCanvas = ({ nativeEvent }) => {
+    if (currentAction === 'cursor' && selectedObject !== null) {
+      storageLayer.current.style.cursor = 'move'
+      const context = drawingLayer.current.getContext('2d')
+      context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
+
+      if (selectedObject.name === 'Box') {
+        setSelectedObject(object => {
+          const positionX = object.currentCentre.x - nativeEvent.offsetX
+          const positionY = object.currentCentre.y - nativeEvent.offsetY
+          object.x = object.x - positionX
+          object.y = object.y - positionY
+          object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          return object
+        })
+        selectedObject.draw(context, false)
+      } else if (selectedObject.name === 'Path') {
+        setSelectedObject(object => {
+          object.points = object.rawPoints.map(point => {
+            const positionX = (object.currentCentre.x - nativeEvent.offsetX) * object.scale
+            const positionY = (object.currentCentre.y - nativeEvent.offsetY) * object.scale
+            return {
+              x: point.x - positionX,
+              y: point.y - positionY
+            }
+          })
+          object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          return object
+        })
+        selectedObject.draw(context, false)
+      }
+    }
+  }
+
+  const onMouseUpCanvas = (e) => {
+    if (selectedObject !== null && currentAction === 'cursor') {
+      const context = drawingLayer.current.getContext('2d')
+      context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
+      let object = null
+      if (selectedObject.name === 'Box') {
+        object = new Box(selectedObject.x, selectedObject.y, selectedObject.w, selectedObject.h, config.strokeWidth, selectedObject.scale)
+      } else if (selectedObject.name === 'Path') {
+        object = new Path(config.strokeWidth, selectedObject.scale)
+        object.points = selectedObject.rawPoints
+      }
+      setObjects(state => [...state, object].filter(Boolean))
+    }
+    setSelectedObject(null)
+    setIsDraggingObject(false)
   }
 
   /**
@@ -430,15 +460,7 @@ const App = () => {
    * Change cursor when tools are selected.
    */
   useEffect(() => {
-    const cursorMap = {
-      zoom: 'zoom-in',
-      cursor: 'grab',
-      pathDrawing: 'crosshair',
-      rectangleDrawing: 'crosshair',
-      erasing: 'default'
-    }
     canvasWrapper.current.style.cursor = cursorMap[currentAction]
-
   }, [currentAction])
 
   /**
@@ -449,7 +471,7 @@ const App = () => {
     if (currentAction === 'zoom') {
       const deltaScale = e.ctrlKey ? -10 : 10
       instance.current.zoom({ deltaScale: deltaScale, x: e.nativeEvent.pageX, y: e.nativeEvent.pageY })
-    } else if (currentAction === 'cursor') {
+    } else if (currentAction === 'hand') {
       canvasWrapper.current.style.cursor = 'grabbing'
     }
   }
@@ -459,7 +481,7 @@ const App = () => {
    * @param {Object} event - The event that triggered the movement.
   */
   const handleMovementOnCanvasWrapper = (e) => {
-    if (currentAction === 'cursor' && e.buttons === 1 && imageEditor.current.contains(e.target) && !isDragging) {
+    if (currentAction === 'hand' && e.buttons === 1 && imageEditor.current.contains(e.target) && !isDragging) {
       instance.current.panBy({ originX: e.movementX, originY: e.movementY })
     }
   }
@@ -469,7 +491,7 @@ const App = () => {
    * @param {Object} event - The event that triggered the event.
    */
   const handleMouseUpOnCanvasWrapper = (e) => {
-    if (currentAction === 'cursor') {
+    if (currentAction === 'hand') {
       canvasWrapper.current.style.cursor = 'grab'
     }
   }
@@ -479,7 +501,7 @@ const App = () => {
   <surface ulx="0" uly="0" lrx="${backgroundSettings.lrx}" lry="${backgroundSettings.lry}">
     <graphic url="/${backgroundSettings.fileName}"/>
 ` +
-  objects?.map((box, index) => {
+  objects.map((box, index) => {
     const prefix = index === 0 ? '    ' : '\n    '
     const name = backgroundSettings.fileName.substring(0, backgroundSettings.fileName.indexOf('.'))
     const id = `fol-${name.substring(name.length - 3)}--${index + 1}`
@@ -528,6 +550,7 @@ const App = () => {
             className='fixedLayer'
             onMouseMove={higlightHoveredObjects}
             onMouseDown={removeObjectFromCanvas}
+            onMouseUp={onMouseUpCanvas}
           >
             Higlights layer
           </canvas>
@@ -557,9 +580,9 @@ const App = () => {
         <div className='toolsPane'>
           <div className='toolsPane__Head' />
           <button
-            onClick={() => setCurrentAction('cursor')}
+            onClick={() => setCurrentAction('cursor')}
             className={currentAction === 'cursor' && 'toolsPane__Confirmation'}
-            title='Move tool, move the canvas around the board.'
+            title='Move tool, move the objects on the canvas.'
           >
             <FontAwesomeIcon icon={faMousePointer} />
           </button>
@@ -583,6 +606,13 @@ const App = () => {
             title='Rectangle drawing tool, click and drag to draw a rectangle.'
           >
             <FontAwesomeIcon icon={faSquare} />
+          </button>
+          <button
+            onClick={() => setCurrentAction('hand')}
+            className={currentAction === 'hand' && 'toolsPane__Confirmation'}
+            title='Hand tool, grab the canvas and move it around the board.'
+          >
+            <FontAwesomeIcon icon={faHandPaper} />
           </button>
           <button
             onClick={() => setCurrentAction('zoom')}
