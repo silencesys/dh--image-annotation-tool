@@ -428,7 +428,7 @@ const App = () => {
   const onMouseUpCanvas = (e) => {
     const context = drawingLayer.current.getContext('2d')
     context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
-    if (selectedObject !== null && currentAction === 'cursor' && !isDoubleClicked) {
+    if (selectedObject !== null && currentAction === 'cursor') {
       let object = null
       if (selectedObject.name === 'Box') {
         object = new Box(selectedObject.x, selectedObject.y, selectedObject.w, selectedObject.h, config.strokeWidth, selectedObject.scale)
