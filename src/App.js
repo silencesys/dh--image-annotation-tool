@@ -9,7 +9,6 @@ import Box from './utils/Box'
 import Path from './utils/Path'
 import config from './utils/constants/config'
 import { renderer } from './utils/transformer'
-import { isDoubleClick } from './utils/mouse'
 
 const App = () => {
   // This layer is used to store the background image
@@ -47,8 +46,6 @@ const App = () => {
   const [scale, setScale] = useState(1)
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState('hand')
-  // Store information whether user doubleclicked.
-  const [isDoubleClicked, setIsDoubleClicked] = useState(false)
   // Cursor map for certain actions.
   const cursorMap = {
     zoom: 'zoom-in',
