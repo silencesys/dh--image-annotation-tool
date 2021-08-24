@@ -9,6 +9,7 @@ import Box from './utils/Box'
 import Path from './utils/Path'
 import config from './utils/constants/config'
 import { renderer } from './utils/transformer'
+import { isDoubleClick } from './utils/mouse'
 
 const App = () => {
   // This layer is used to store the background image
@@ -46,6 +47,8 @@ const App = () => {
   const [scale, setScale] = useState(1)
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState('hand')
+  // Store information whether user doubleclicked.
+  const [isDoubleClicked, setIsDoubleClicked] = useState(false)
   // Cursor map for certain actions.
   const cursorMap = {
     zoom: 'zoom-in',
@@ -55,6 +58,8 @@ const App = () => {
     erasing: 'default',
     cursor: 'default'
   }
+
+
 
   /**
    * Register the renderer transformer
@@ -331,7 +336,7 @@ const App = () => {
   /**
    * Remove object from teh canvas.
   */
-  const removeObjectFromCanvas = () => {
+  const removeObjectFromCanvas = (e) => {
     if (selectedObject !== null) {
       if (currentAction === 'erasing') {
         setObjects(state => state.filter(object => object.id !== selectedObject.id))
@@ -391,36 +396,42 @@ const App = () => {
 
       if (selectedObject.name === 'Box') {
         setSelectedObject(object => {
-          const positionX = object.currentCentre.x - nativeEvent.offsetX
-          const positionY = object.currentCentre.y - nativeEvent.offsetY
-          object.x = object.x - positionX
-          object.y = object.y - positionY
-          object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          try {
+            const positionX = object.currentCentre.x - nativeEvent.offsetX
+            const positionY = object.currentCentre.y - nativeEvent.offsetY
+            object.x = object.x - positionX
+            object.y = object.y - positionY
+            object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          } catch (e) {}
           return object
         })
-        selectedObject.draw(context, false)
       } else if (selectedObject.name === 'Path') {
         setSelectedObject(object => {
-          object.points = object.rawPoints.map(point => {
-            const positionX = (object.currentCentre.x - nativeEvent.offsetX) * object.scale
-            const positionY = (object.currentCentre.y - nativeEvent.offsetY) * object.scale
-            return {
-              x: point.x - positionX,
-              y: point.y - positionY
-            }
-          })
-          object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          try {
+            object.points = object.rawPoints.map(point => {
+              const positionX = (object.currentCentre.x - nativeEvent.offsetX) * object.scale
+              const positionY = (object.currentCentre.y - nativeEvent.offsetY) * object.scale
+              return {
+                x: point.x - positionX,
+                y: point.y - positionY
+              }
+            })
+            object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
+          } catch (e) {}
           return object
         })
+      }
+
+      if (selectedObject) {
         selectedObject.draw(context, false)
       }
     }
   }
 
   const onMouseUpCanvas = (e) => {
-    if (selectedObject !== null && currentAction === 'cursor') {
-      const context = drawingLayer.current.getContext('2d')
-      context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
+    const context = drawingLayer.current.getContext('2d')
+    context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
+    if (selectedObject !== null && currentAction === 'cursor' && !isDoubleClicked) {
       let object = null
       if (selectedObject.name === 'Box') {
         object = new Box(selectedObject.x, selectedObject.y, selectedObject.w, selectedObject.h, config.strokeWidth, selectedObject.scale)
