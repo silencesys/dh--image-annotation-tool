@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { stackoverflowLight, stackoverflowDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClipboard, faSquare, faCrosshairs, faEraser, faMousePointer, faSearch, faHandPaper } from '@fortawesome/pro-duotone-svg-icons'
+import { faClipboard, faEraser, faMousePointer, faSearch, faHandPaper, faDrawSquare, faDrawPolygon } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
-import Box from './utils/Box'
-import Path from './utils/Path'
+import Rectangle from './utils/Rectangle'
+import Polygon from './utils/Polygon'
 import config from './utils/constants/config'
 import { renderer } from './utils/transformer'
 
@@ -46,17 +46,32 @@ const App = () => {
   const [scale, setScale] = useState(1)
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState('hand')
+  // Store information whether user is dragging object or not.
+  const [isDraggingObject, setIsDraggingObject] = useState(false)
+  // Store code-block theme
+  const [codeTheme, setCodeTheme] = useState(stackoverflowLight)
   // Cursor map for certain actions.
-  const cursorMap = {
+  const cursorMap = useMemo(() => ({
     zoom: 'zoom-in',
+    zoomAlt: 'zoom-out',
     hand: 'grab',
     pathDrawing: 'crosshair',
     rectangleDrawing: 'crosshair',
     erasing: 'default',
-    cursor: 'default'
-  }
-
-
+    cursor: 'default',
+    transformation: 'default'
+  }), [])
+  // Configuration for drew objects.
+  const objectApparance = useMemo(() => ({
+    fillStyle: config.fill, strokeStyle: config.strokeFill, lineWidth: 3
+  }), [])
+  // Configuration for objects that are drawn on the canvas.
+  const temporaryObjectApparance = useMemo(() => ({
+    fillStyle: config.temporaryFill, strokeStyle: config.temporaryStrokeFill, lineWidth: 3
+  }), [])
+  // Draggable error silenter.
+  const toolBar = useRef(null)
+  const optionPane = useRef(null)
 
   /**
    * Register the renderer transformer
@@ -72,12 +87,56 @@ const App = () => {
     canvasWrapper.current.addEventListener('scalechange', (e) => {
       setScale(e.detail.scale)
     })
+    // Prevent context menu from appearing.
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault()
+    })
+
+    // Switch theme of the code-block.
+    const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)')
+    preferredTheme.addEventListener('change', (e) => {
+      if (e.matches) {
+        setCodeTheme(stackoverflowDark)
+      } else {
+        setCodeTheme(stackoverflowLight)
+      }
+    })
 
     const canvas = canvasWrapper.current
     return () => {
       canvas.removeEventListener('scalechange', (e) => {})
+      document.removeEventListener('contextmenu', () => {})
     }
   }, [])
+
+  /**
+   * Change cursor when tools are selected.
+   */
+  useEffect(() => {
+    canvasWrapper.current.style.cursor = cursorMap[currentAction]
+    document.addEventListener('keydown', ({ ctrlKey }) => {
+      if (ctrlKey) {
+        try {
+          canvasWrapper.current.style.cursor = cursorMap[`${currentAction}Alt`] || cursorMap[currentAction]
+        } catch (e) {
+          // Silent catch.
+        }
+      }
+    })
+    document.addEventListener('keyup', () => {
+      try {
+        canvasWrapper.current.style.cursor = cursorMap[currentAction]
+      } catch (e) {
+        // Silent catch.
+      }
+    })
+
+    return () => {
+      document.removeEventListener('keydown', () => {})
+      document.removeEventListener('keyup', () => {})
+    }
+  }, [currentAction, cursorMap, canvasWrapper])
+
   /**
    * Scale and position the canvas when the image is loaded.
   */
@@ -90,42 +149,22 @@ const App = () => {
   }, [backgroundSettings])
 
   useEffect(() => {
-    // Add event handling for canvases and box reseting
-    const resetObjectsOnCanvas = () => {
-      setObjects(state => [...state]?.map(obj => {
-        obj.fill = config.fill
-        obj.strokeFill = config.strokeFill
-        return obj
-      }))
-    }
-    // Prevent context menu from appearing.
-    document.addEventListener('contextmenu', (e) => {
-      e.preventDefault()
-    })
+    const backgroundActions = ['transformation', 'erasing', 'cursor']
     // Move the storage canvas to front, so user can delete it's content.
-    if (currentAction === 'erasing' || currentAction === 'cursor') {
-      if (storageLayer.current) {
+    if (backgroundActions.includes(currentAction)) {
+      try {
         storageLayer.current.style.zIndex = '1'
+      } catch (e) {
+        // Silent catch.
       }
     } else {
-      if (storageLayer.current) {
+      try {
         storageLayer.current.style.zIndex = '0'
+      } catch (e) {
+        // Silent catch.
       }
-      // Ensure that everything that remained is back in it's initial state.
-      resetObjectsOnCanvas()
     }
   }, [storageLayer, currentAction])
-
-  /**
-   * Register an effect that will be triggered each time user changes the tool.
-   * This should unsure that canvas will be always clear and prepared for drawing
-   * new objects.
-   */
-  useEffect(() => {
-    if (points.length !== 0 && currentAction !== 'pathDrawing') {
-      drawPathObject(null, true)
-    }
-  }, [currentAction, points])
 
   /**
    * Register an effect that will be triggered each time an array of drawn objects
@@ -144,28 +183,18 @@ const App = () => {
    * to the canvas.
    */
   useEffect(() => {
-    /**
-     * Draw a point on the canvas.
-     * @param {object} context
-     * @param {object} point
-    */
-    const drawPoint = (context, point) => {
-      context.beginPath()
-      context.lineWidth = 2
-      context.strokeStyle = config.temporaryStrokeFill
-      context.fillStyle = config.temporaryFill
-      context.arc(point.x / scale, point.y / scale, 4 / scale, 0, 2 * Math.PI)
-      context.stroke()
-      context.fill()
-    }
-
     // Draw points with each new point added.
     const context = drawingLayer.current.getContext('2d')
     context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
     points.forEach(point => {
-      drawPoint(context, point)
+      Polygon.drawPoint(context, {
+        x: point.x,
+        y: point.y,
+        radius: 4,
+        ...temporaryObjectApparance
+      }, scale)
     })
-  }, [points, scale])
+  }, [points, scale, temporaryObjectApparance])
 
   /**
    * Get file name of the image
@@ -173,7 +202,10 @@ const App = () => {
    * @returns {string}
   */
   const getFileName = (filePath) => {
-    const startIndex = (filePath.indexOf('\\') >= 0 ? filePath.lastIndexOf('\\') : filePath.lastIndexOf('/'))
+    const startIndex = (filePath.indexOf('\\') >= 0
+      ? filePath.lastIndexOf('\\')
+      : filePath.lastIndexOf('/'))
+
     return filePath.substring(startIndex + 1)
   }
 
@@ -229,57 +261,21 @@ const App = () => {
   }
 
   /**
-   * Draw a path on the canvas.
-  */
-  const drawPathObject = (e, skipTool = false) => {
-    if (
-      (currentAction === 'pathDrawing' && points.length > 2) ||
-      (skipTool && points.length > 2)
-    ) {
-      const path = new Path(3, scale)
-      path.points = points
-      path.fill = config.fill
-      path.strokeFill = config.strokeFill
-      setObjects(state => [...state, path])
-    }
-
-    setPoints([])
-    if (!skipTool) {
-      setCurrentAction('pathDrawing')
-    }
-  }
-
-  /**
-   * Draws a box or a point on the canvas.
-   * @param {Object} event - The event that triggered the drawing.
-   */
-  const startDrawingOrPoiting = (e) => {
-    const { clientX, clientY } = e
-    const bounding = drawingLayer.current.getBoundingClientRect()
-    if (currentAction === 'rectangleDrawing') {
-      setRectCoords(state => ({ ...state, x: clientX - bounding.left, y: clientY - bounding.top }))
-    } else if (currentAction === 'pathDrawing') {
-      setPoints(state => [...state, { x: clientX - bounding.left, y: clientY - bounding.top }])
-    }
-  }
-
-  /**
    * Draws a temporary box on the canvas.
    * @param {Object} event - The event that triggered the drawing.
   */
   const drawTemporaryRectangle = ({ buttons, clientY, clientX }) => {
-    if (buttons === 1 && currentAction === 'rectangleDrawing' && !isDragging) {
+    if (buttons === 1 && !isDragging) {
       const bounding = drawingLayer.current.getBoundingClientRect()
       const context = drawingLayer.current.getContext('2d')
-      context.beginPath()
-      context.lineWidth = config.strokeWidth
-      context.strokeStyle = config.temporaryStrokeFill
-      context.fillStyle = config.temporaryFill
       context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
-      context.rect(rectCoords.x / scale, rectCoords.y / scale, (clientX - bounding.left - rectCoords.x) / scale, (clientY - bounding.top - rectCoords.y) / scale)
-      context.stroke()
-      context.fill()
-      setIsDrawing(true)
+      Rectangle.drawTemporary(context, {
+        x: rectCoords.x,
+        y: rectCoords.y,
+        width: clientX - bounding.left - rectCoords.x,
+        height: clientY - bounding.top - rectCoords.y,
+        ...temporaryObjectApparance
+      }, scale)
     }
   }
 
@@ -288,7 +284,7 @@ const App = () => {
    * @param {Object} event - The event that triggered the drawing.
   */
   const drawRectangle = ({ clientX, clientY }) => {
-    if (isDrawing && currentAction === 'rectangleDrawing') {
+    if (isDrawing) {
       const rectangle = backgroundLayer.current.getBoundingClientRect()
       const width = clientX - rectangle.left - rectCoords.x
       const height = clientY - rectangle.top - rectCoords.y
@@ -297,9 +293,7 @@ const App = () => {
       const realW = width > 0 ? width : rectCoords.x - realX
       const realH = height > 0 ? height : rectCoords.y - realY
 
-      const box = new Box(realX / scale, realY / scale, realW / scale, realH / scale, config.strokeWidth, 1)
-      box.fill = config.fill
-      box.strokeFill = config.strokeFill
+      const box = new Rectangle({ x: realX, y: realY, width: realW, height: realH }, scale, objectApparance)
       setObjects(state => [...state, box])
 
       const drawContext = drawingLayer.current.getContext('2d')
@@ -315,8 +309,8 @@ const App = () => {
    * Reset all drawings on all canvases.
    */
   const resetDrawings = () => {
-    setObjects(state => [])
-    setPoints(state => [])
+    setObjects([])
+    setPoints([])
   }
 
   /**
@@ -331,17 +325,13 @@ const App = () => {
   }
 
   /**
-   * Remove object from teh canvas.
-  */
-  const removeObjectFromCanvas = (e) => {
-    if (selectedObject !== null) {
-      if (currentAction === 'erasing') {
-        setObjects(state => state.filter(object => object.id !== selectedObject.id))
-        setSelectedObject(null)
-      } else if (currentAction === 'cursor') {
-        setObjects(state => state.filter(object => object.id !== selectedObject.id))
-        setIsDraggingObject(true)
-      }
+   * Remove object from the canvas.
+   * @param {Object} object - The object to remove.
+   * @returns {void}
+   */
+  const removeObject = (object = null) => {
+    if (object) {
+      setObjects(state => state.filter(obj => obj.id !== object.id))
     }
   }
 
@@ -349,16 +339,15 @@ const App = () => {
    * Higlight hovered object on the canvas.
    * @param {Object} event - The event that triggered the highlighting.
    */
-  const higlightHoveredObjects = (e) => {
-    if (!isDraggingObject && (currentAction === 'erasing' || currentAction === 'cursor')) {
+  const higlightHoveredObject = (e) => {
+    if (!isDraggingObject) {
       const context = storageLayer.current.getContext('2d')
       for (const [index, object] of objects.entries()) {
         if (context.isPointInPath(object, e.nativeEvent.offsetX, e.nativeEvent.offsetY)) {
           object.currentCentre = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY }
-          storageLayer.current.style.cursor = currentAction === 'erasing' ? 'pointer' : 'move'
           setObjects(state => {
-            state[index].strokeFill = config.temporaryStrokeFill
-            state[index].fill = config.temporaryFill
+            state[index].strokeStyle = temporaryObjectApparance.strokeStyle
+            state[index].fillStyle = temporaryObjectApparance.fillStyle
             return [...state]
           })
           setSelectedObject(object)
@@ -367,45 +356,41 @@ const App = () => {
           setSelectedObject(null)
           storageLayer.current.style.cursor = 'default'
           setObjects(state => {
-            state[index].strokeFill = config.strokeFill
-            state[index].fill = config.fill
+            state[index].strokeStyle = objectApparance.strokeStyle
+            state[index].fillStyle = objectApparance.fillStyle
             return [...state]
           })
         }
       }
-      if (!selectedObject) {
-        storageLayer.current.style.cursor = 'default'
-      }
-    }
-
-    if (e.buttons === 1 && currentAction === 'cursor') {
-      return dragObjectsOnCanvas(e)
     }
   }
 
-  const [isDraggingObject, setIsDraggingObject] = useState(false)
-
-  const dragObjectsOnCanvas = ({ nativeEvent }) => {
-    if (currentAction === 'cursor' && selectedObject !== null) {
+  /**
+   * Drag an object on the canvas.
+   * @param {Object} event - The event that triggered the dragging.
+   * @returns {void}
+   */
+  const dragObjectsOnCanvas = ({ nativeEvent, buttons }) => {
+    if (buttons === 1 && selectedObject !== null) {
       storageLayer.current.style.cursor = 'move'
       const context = drawingLayer.current.getContext('2d')
       context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
 
-      if (selectedObject.name === 'Box') {
+      if (selectedObject.name === 'Rectangle') {
         setSelectedObject(object => {
           try {
-            const positionX = object.currentCentre.x - nativeEvent.offsetX
-            const positionY = object.currentCentre.y - nativeEvent.offsetY
+            const positionX = (object.currentCentre.x - nativeEvent.offsetX) * object.scale
+            const positionY = (object.currentCentre.y - nativeEvent.offsetY) * object.scale
             object.x = object.x - positionX
             object.y = object.y - positionY
             object.currentCentre = { x: nativeEvent.offsetX, y: nativeEvent.offsetY }
           } catch (e) {}
           return object
         })
-      } else if (selectedObject.name === 'Path') {
+      } else if (selectedObject.name === 'Polygon') {
         setSelectedObject(object => {
           try {
-            object.points = object.rawPoints.map(point => {
+            object.points = object.points.map(point => {
               const positionX = (object.currentCentre.x - nativeEvent.offsetX) * object.scale
               const positionY = (object.currentCentre.y - nativeEvent.offsetY) * object.scale
               return {
@@ -425,16 +410,18 @@ const App = () => {
     }
   }
 
-  const onMouseUpCanvas = (e) => {
+  /**
+   * Redraw object to storage layer after movement.
+   */
+  const redrawObjectAfterMovement = () => {
     const context = drawingLayer.current.getContext('2d')
     context.clearRect(0, 0, drawingLayer.current.width, drawingLayer.current.height)
     if (selectedObject !== null && currentAction === 'cursor') {
       let object = null
-      if (selectedObject.name === 'Box') {
-        object = new Box(selectedObject.x, selectedObject.y, selectedObject.w, selectedObject.h, config.strokeWidth, selectedObject.scale)
-      } else if (selectedObject.name === 'Path') {
-        object = new Path(config.strokeWidth, selectedObject.scale)
-        object.points = selectedObject.rawPoints
+      if (selectedObject.name === 'Rectangle') {
+        object = new Rectangle(selectedObject, selectedObject.scale, temporaryObjectApparance)
+      } else if (selectedObject.name === 'Polygon') {
+        object = new Polygon(selectedObject.points, selectedObject.scale, temporaryObjectApparance)
       }
       setObjects(state => [...state, object].filter(Boolean))
     }
@@ -443,44 +430,122 @@ const App = () => {
   }
 
   /**
-   * Register the keydown event listener. Currently only used for changing the
-   * cursor.
+   * Handle the zooming of the canvas.
+   * @param {Object} event - The event that triggered the event.
    */
-  useEffect(() => {
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && currentAction === 'zoom') {
-        canvasWrapper.current.style.cursor = 'zoom-out'
-      }
-    })
-    document.addEventListener('keyup', (e) => {
-      if (currentAction === 'zoom') {
-        canvasWrapper.current.style.cursor = 'zoom-in'
-      }
-    })
-
-    return () => {
-      document.removeEventListener('keydown', (e) => {})
-      document.removeEventListener('keyup', (e) => {})
+  const zoomCanvas = ({ ctrlKey, nativeEvent: { pageX, pageY }, buttons }) => {
+    const deltaScale = ctrlKey || buttons === 2 ? -10 : 10
+    if (deltaScale === -10) {
+      // Set the cursor to zoom-out if the deltaScale is negative.
+      canvasWrapper.current.style.cursor = 'zoom-out'
     }
-  })
+    instance.current.zoom({ deltaScale: deltaScale, x: pageX, y: pageY })
+  }
+
+  const panCanvas = ({ target, movementX, movementY, buttons }) => {
+    if (buttons === 1 && imageEditor.current.contains(target) && !isDragging) {
+      instance.current.panBy({ originX: movementX, originY: movementY })
+    }
+  }
 
   /**
-   * Change cursor when tools are selected.
+   * Draw a path on the canvas.
+  */
+  const drawPolygonShape = () => {
+    if (currentAction === 'pathDrawing' && points.length > 2) {
+      const path = new Polygon(points, scale, objectApparance)
+      setObjects(state => [...state, path])
+    }
+    setPoints([])
+  }
+
+  /**
+   * Select a tool from the toolbar.
+   * @param {Object} event - The event that triggered the action.
+   * @param {String} tool - The name of the tool to select.
+   * @param {Function} [callback] - The callback to run after the tool is selected.
    */
-  useEffect(() => {
-    canvasWrapper.current.style.cursor = cursorMap[currentAction]
-  }, [currentAction])
+  const selectTool = (e, toolName, callback = null) => {
+    setCurrentAction(toolName)
+    if (toolName !== 'pathDrawing' && points.length > 2) {
+      drawPolygonShape(e)
+    }
+    if (typeof callback === 'function') {
+      callback(e, toolName)
+    }
+  }
+
+  /**
+   * Handle the mouse down event on the storage layer.
+   * @param {Object} event - The event that triggered the event.
+   */
+  const handleOnMouseDownOnStorageLayer = (e) => {
+    switch (currentAction) {
+      case 'erasing':
+        removeObject(selectedObject)
+        setSelectedObject(null)
+        break
+      case 'cursor':
+        removeObject(selectedObject)
+        setIsDraggingObject(true)
+        break
+      default:
+        // Do nothing
+    }
+  }
+
+  /**
+   * Handle the mouse move event on the storage layer.
+   * @param {Object} event - The event that triggered the event.
+   */
+  const handleOnMouseMoveOnStorageLayer = (e) => {
+    switch (currentAction) {
+      case 'cursor':
+        higlightHoveredObject(e)
+        dragObjectsOnCanvas(e)
+        storageLayer.current.style.cursor = 'move'
+        break
+      case 'erasing':
+        higlightHoveredObject(e)
+        storageLayer.current.style.cursor = 'pointer'
+        break
+      default:
+        // Do nothing.
+    }
+
+    if (selectedObject === null) {
+      storageLayer.current.style.cursor = 'default'
+    }
+  }
+
+  /**
+   * Handle the mouse up event on the storage layer.
+   * @param {Object} event - The event that triggered the event.
+   */
+  const handleOnMouseUpOnStorageLayer = (e) => {
+    switch (currentAction) {
+      case 'cursor':
+        redrawObjectAfterMovement()
+        break
+      default:
+        // Do nothing.
+    }
+  }
 
   /**
    * Handle the mouse down event on the canvas wrapper.
    * @param {Object} event - The event that triggered the event.
    */
-  const handleClickOnCanvasWrapper = (e) => {
-    if (currentAction === 'zoom') {
-      const deltaScale = e.ctrlKey ? -10 : 10
-      instance.current.zoom({ deltaScale: deltaScale, x: e.nativeEvent.pageX, y: e.nativeEvent.pageY })
-    } else if (currentAction === 'hand') {
-      canvasWrapper.current.style.cursor = 'grabbing'
+  const handleOnMouseDownOnCanvasWrapper = (e) => {
+    switch (currentAction) {
+      case 'zoom':
+        zoomCanvas(e)
+        break
+      case 'hand':
+        canvasWrapper.current.style.cursor = 'grabbing'
+        break
+      default:
+        // do nothing
     }
   }
 
@@ -488,9 +553,13 @@ const App = () => {
    * Handle the mouse move event on the canvas wrapper.
    * @param {Object} event - The event that triggered the movement.
   */
-  const handleMovementOnCanvasWrapper = (e) => {
-    if (currentAction === 'hand' && e.buttons === 1 && imageEditor.current.contains(e.target) && !isDragging) {
-      instance.current.panBy({ originX: e.movementX, originY: e.movementY })
+  const handleOnMouseMoveOnCanvasWrapper = (e) => {
+    switch (currentAction) {
+      case 'hand':
+        panCanvas(e)
+        break
+      default:
+        // Do nothing.
     }
   }
 
@@ -498,9 +567,66 @@ const App = () => {
    * Handle the mouse up event on the canvas wrapper.
    * @param {Object} event - The event that triggered the event.
    */
-  const handleMouseUpOnCanvasWrapper = (e) => {
-    if (currentAction === 'hand') {
-      canvasWrapper.current.style.cursor = 'grab'
+  const handleOnMouseUpOnCanvasWrapper = (e) => {
+    switch (currentAction) {
+      case 'zoom':
+        canvasWrapper.current.style.cursor = 'zoom-in'
+        break
+      case 'hand':
+        canvasWrapper.current.style.cursor = 'grab'
+        break
+      default:
+        // do nothing
+    }
+  }
+
+  /**
+ * Handle on mouse down events on the drawing layer. This should be used as
+ * a crossroad to redirect to other actions.
+ * @param {Object} event - The event that triggered the drawing.
+ */
+  const handleOnMouseDownOnDrawingLayer = (e) => {
+    const bounding = drawingLayer.current.getBoundingClientRect()
+    switch (currentAction) {
+      case 'rectangleDrawing':
+        setRectCoords(state => ({ ...state, x: e.clientX - bounding.left, y: e.clientY - bounding.top }))
+        setIsDrawing(true)
+        break
+      case 'pathDrawing':
+        setPoints(state => [...state, { x: e.clientX - bounding.left, y: e.clientY - bounding.top }])
+        break
+      default:
+        // Do nothing
+    }
+  }
+
+  /**
+   * Handle on mouse move events on the drawing layer. This should be used as
+   * a crossroad to redirect to other actions.
+   * @param {Object} event - The event that triggered the drawing.
+   */
+  const handleOnMouseMoveOnDrawingLayer = (e) => {
+    switch (currentAction) {
+      case 'rectangleDrawing':
+        drawTemporaryRectangle(e)
+        break
+      default:
+        // Do nothing
+    }
+  }
+
+  /**
+   * Handle on mouse up events on the drawing layer. This should be used as
+   * a crossroad to redirect to other actions.
+   * @param {Object} event - The event that triggered the drawing.
+   */
+  const handleOnMouseUpOnDrawingLayer = (e) => {
+    switch (currentAction) {
+      case 'rectangleDrawing':
+        drawRectangle(e)
+        break
+      default:
+        // do nothing
     }
   }
 
@@ -510,29 +636,18 @@ const App = () => {
     <graphic url="/${backgroundSettings.fileName}"/>
 ` +
   objects.map((box, index) => {
-    const prefix = index === 0 ? '    ' : '\n    '
     const name = backgroundSettings.fileName.substring(0, backgroundSettings.fileName.indexOf('.'))
     const id = `fol-${name.substring(name.length - 3)}--${index + 1}`
-    if (box.name === 'Path') {
-      return (
-        `${prefix}<zone xml:id="${id}" points="${box.pointsScaled.join(' ')}">`
-      )
-    } else {
-      return (
-        `${prefix}<zone xml:id="${id}" ulx="${box.scaled.x}" uly="${box.scaled.y}" lrx="${box.scaled.rx}" lry="${box.scaled.ry}">`
-      )
+    switch (box.name) {
+      case 'Rectangle':
+        return `    <zone xml:id="${id}" ulx="${box.scaled.x}" uly="${box.scaled.y}" lrx="${box.scaled.rx}" lry="${box.scaled.ry}">\n`
+      case 'Polygon':
+        return `    <zone xml:id="${id}" points="${box.scaledPointsAsString}">\n`
+      default:
+        return ''
     }
-  }) + `
-  </surface>
+  }).join('') + `  </surface>
 </facsimile>`
-
-  const codeBlock = () => {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return stackoverflowDark
-    } else {
-      return stackoverflowLight
-    }
-  }
 
   return (
     <div>
@@ -544,9 +659,9 @@ const App = () => {
           id='imageEditor_Canvas'
           className='imageEditor_Canvas'
           ref={canvasWrapper}
-          onMouseDown={handleClickOnCanvasWrapper}
-          onMouseMove={handleMovementOnCanvasWrapper}
-          onMouseUp={handleMouseUpOnCanvasWrapper}
+          onMouseDown={handleOnMouseDownOnCanvasWrapper}
+          onMouseMove={handleOnMouseMoveOnCanvasWrapper}
+          onMouseUp={handleOnMouseUpOnCanvasWrapper}
         >
           <canvas width={400} height={400} ref={backgroundLayer}>
             Background layer
@@ -556,22 +671,19 @@ const App = () => {
             height={400}
             ref={storageLayer}
             className='fixedLayer'
-            onMouseMove={higlightHoveredObjects}
-            onMouseDown={removeObjectFromCanvas}
-            onMouseUp={onMouseUpCanvas}
+            onMouseMove={handleOnMouseMoveOnStorageLayer}
+            onMouseDown={handleOnMouseDownOnStorageLayer}
+            onMouseUp={handleOnMouseUpOnStorageLayer}
           >
-            Higlights layer
+            Storage layer
           </canvas>
           <canvas
             width={400}
             height={400}
-            onMouseDown={startDrawingOrPoiting}
-            onMouseUp={drawRectangle}
-            onMouseMove={drawTemporaryRectangle}
-            onMouseLeave={drawRectangle}
-            onTouchStart={startDrawingOrPoiting}
-            onTouchEnd={drawRectangle}
-            onTouchMove={drawTemporaryRectangle}
+            onMouseDown={handleOnMouseDownOnDrawingLayer}
+            onMouseUp={handleOnMouseUpOnDrawingLayer}
+            onMouseMove={handleOnMouseMoveOnDrawingLayer}
+            onMouseLeave={handleOnMouseUpOnDrawingLayer}
             ref={drawingLayer}
             className='fixedLayer'
           >
@@ -584,47 +696,48 @@ const App = () => {
         onStop={() => setisDragging(false)}
         handle='.toolsPane__Head'
         bounds='body'
+        nodeRef={toolBar}
       >
-        <div className='toolsPane'>
+        <div className='toolsPane' ref={toolBar}>
           <div className='toolsPane__Head' />
           <button
-            onClick={() => setCurrentAction('cursor')}
-            className={currentAction === 'cursor' && 'toolsPane__Confirmation'}
+            onClick={(e) => selectTool(e, 'cursor')}
+            className={currentAction === 'cursor' ? 'toolsPane__Confirmation' : ''}
             title='Move tool, move the objects on the canvas.'
           >
             <FontAwesomeIcon icon={faMousePointer} />
           </button>
           <button
-            onClick={drawPathObject}
-            className={currentAction === 'pathDrawing' && 'toolsPane__Confirmation'}
-            title='Path drawing tool, click to canvas to add points, click again on this button to finish drawing.'
+            onClick={(e) => selectTool(e, 'pathDrawing', drawPolygonShape)}
+            className={currentAction === 'pathDrawing' ? 'toolsPane__Confirmation' : ''}
+            title='Polygon drawing tool, click to canvas to add points, click again on this button to finish drawing.'
           >
-            <FontAwesomeIcon icon={faCrosshairs} />
+            <FontAwesomeIcon icon={faDrawPolygon} />
           </button>
           <button
-            onClick={() => setCurrentAction('erasing')}
-            className={currentAction === 'erasing' && 'toolsPane__Confirmation'}
+            onClick={(e) => selectTool(e, 'rectangleDrawing')}
+            className={currentAction === 'rectangleDrawing' ? 'toolsPane__Confirmation' : ''}
+            title='Rectangle drawing tool, click and drag to draw a rectangle.'
+          >
+            <FontAwesomeIcon icon={faDrawSquare} />
+          </button>
+          <button
+            onClick={(e) => selectTool(e, 'erasing')}
+            className={currentAction === 'erasing' ? 'toolsPane__Confirmation' : ''}
             title='Eraser tool, click on drew objects on the canvas to remove them.'
           >
             <FontAwesomeIcon icon={faEraser} />
           </button>
           <button
-            onClick={() => setCurrentAction('rectangleDrawing')}
-            className={currentAction === 'rectangleDrawing' && 'toolsPane__Confirmation'}
-            title='Rectangle drawing tool, click and drag to draw a rectangle.'
-          >
-            <FontAwesomeIcon icon={faSquare} />
-          </button>
-          <button
-            onClick={() => setCurrentAction('hand')}
-            className={currentAction === 'hand' && 'toolsPane__Confirmation'}
+            onClick={(e) => selectTool(e, 'hand')}
+            className={currentAction === 'hand' ? 'toolsPane__Confirmation' : ''}
             title='Hand tool, grab the canvas and move it around the board.'
           >
             <FontAwesomeIcon icon={faHandPaper} />
           </button>
           <button
-            onClick={() => setCurrentAction('zoom')}
-            className={currentAction === 'zoom' && 'toolsPane__Confirmation'}
+            onClick={(e) => selectTool(e, 'zoom')}
+            className={currentAction === 'zoom' ? 'toolsPane__Confirmation' : ''}
             title='Zoom tool, click to zoom-in, hold ctrl and click to zoom-out.'
           >
             <FontAwesomeIcon icon={faSearch} />
@@ -636,14 +749,15 @@ const App = () => {
         onStop={() => setisDragging(false)}
         handle='.optionsPane__Head'
         bounds='body'
+        nodeRef={optionPane}
       >
-        <div className='optionsPane'>
+        <div className='optionsPane' ref={optionPane}>
           <header className='optionsPane__Head' />
           <div>
             <SyntaxHighlighter
               language='xml'
               className='optionsPane__pre'
-              style={codeBlock()}
+              style={codeTheme}
               showLineNumbers
             >
               {code}
