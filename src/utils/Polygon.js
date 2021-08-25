@@ -2,7 +2,9 @@ import { getRandomNumber } from './math'
 
 class Polygon extends Path2D {
   constructor (
-    points, scale, { strokeStyle = 'rgba(173, 90, 46)', fillStyle = 'rgba(173, 90, 46, 0.5)', lineWidth = 3 }
+    points,
+    scale,
+    { strokeStyle = 'rgba(173, 90, 46)', fillStyle = 'rgba(173, 90, 46, 0.5)', lineWidth = 3 }
   ) {
     super()
     this.strokeStyle = strokeStyle
@@ -15,6 +17,21 @@ class Polygon extends Path2D {
     this._name = 'Polygon'
     this._randomNumber = getRandomNumber()
     this._centre = { x: 0, y: 0 }
+    this._originalApparance = {
+      fillStyle: fillStyle,
+      strokeStyle: strokeStyle,
+      lineWidth: lineWidth
+    }
+  }
+
+  get apparance () {
+    return this._originalApparance
+  }
+
+  copyApparance (apparance) {
+    this._originalApparance.strokeStyle = apparance.strokeStyle
+    this._originalApparance.fillStyle = apparance.fillStyle
+    this._originalApparance.lineWidth = apparance.lineWidth
   }
 
   get id () {
@@ -88,6 +105,11 @@ class Polygon extends Path2D {
     context.arc(x / scale, y / scale, radius / scale, 0, 2 * Math.PI)
     context.stroke()
     context.fill()
+  }
+
+  resetColors () {
+    this.strokeStyle = this._originalApparance.strokeStyle
+    this.fillStyle = this._originalApparance.fillStyle
   }
 }
 

@@ -1,5 +1,15 @@
 # Image Annotation Tool
 
+## 1.2.0 &#8239;&#8239;&#8239;&#8239; 🗓 2021-08-25
+
+### New Features
+* Add support for color changing
+
+### Fixes and changes
+* Double-clicking on drawn object will not trigger an error (hopefully)
+* The app was divided to component/canvas and app components, so it's easier to add new exciting features
+
+
 ## 🏷 1.1.1 &#8239;&#8239;&#8239;&#8239; 🗓 2021-08-24
 
 ### Fixes and changes

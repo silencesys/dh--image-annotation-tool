@@ -54,6 +54,7 @@ body {
   border-radius: .5rem;
   overflow: hidden;
   z-index: 99;
+  width: 55px;
 }
 .toolsPane__Head,
 .optionsPane__Head {
@@ -72,6 +73,7 @@ body {
   color: rgb(var(--grey-800));
   cursor: pointer;
   transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 0;
 }
 .toolsPane button:last-of-type {
   border-bottom: none;
@@ -82,6 +84,17 @@ body {
 .toolsPane button:hover {
   background-color: rgb(var(--grey-100));
   color: rgb(var(--red-500));
+}
+.toolsPane__ColorSelect {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 40px;
+  background: none;
+  outline: none;
+  border: none;
+  padding: 0;
+  margin: .25rem auto .25rem;
 }
 .optionsPane {
   position: fixed;

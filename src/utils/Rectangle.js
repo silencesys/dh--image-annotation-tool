@@ -20,6 +20,21 @@ class Rectangle extends Path2D {
     this._name = 'Rectangle'
     this._randomNumber = getRandomNumber()
     this._centre = { x: 0, y: 0 }
+    this._originalApparance = {
+      fillStyle: fillStyle,
+      strokeStyle: strokeStyle,
+      lineWidth: lineWidth
+    }
+  }
+
+  get apparance () {
+    return this._originalApparance
+  }
+
+  copyApparance (apparance) {
+    this._originalApparance.strokeStyle = apparance.strokeStyle
+    this._originalApparance.fillStyle = apparance.fillStyle
+    this._originalApparance.lineWidth = apparance.lineWidth
   }
 
   get id () {
@@ -81,6 +96,11 @@ class Rectangle extends Path2D {
     context.rect(x / scale, y / scale, width / scale, height / scale)
     context.stroke()
     context.fill()
+  }
+
+  resetColors () {
+    this.strokeStyle = this._originalApparance.strokeStyle
+    this.fillStyle = this._originalApparance.fillStyle
   }
 }
 
