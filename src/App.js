@@ -94,6 +94,9 @@ const App = () => {
 
     // Switch theme of the code-block.
     const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)')
+    if (preferredTheme.matches) {
+      setCodeTheme(stackoverflowDark)
+    }
     preferredTheme.addEventListener('change', (e) => {
       if (e.matches) {
         setCodeTheme(stackoverflowDark)
