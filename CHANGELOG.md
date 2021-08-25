@@ -1,5 +1,9 @@
 # Image Annotation Tool
 
+## 1.2.1 &#8239;&#8239;&#8239;&#8239; 🗓 2021-08-25
+### Fixes and changes
+* The color input was hidden and replaced with custom-styled element.
+
 ## 1.2.0 &#8239;&#8239;&#8239;&#8239; 🗓 2021-08-25
 
 ### New Features

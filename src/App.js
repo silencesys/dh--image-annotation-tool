@@ -13,6 +13,7 @@ const App = () => {
   // Draggable error silenter.
   const toolBar = useRef(null)
   const optionPane = useRef(null)
+  const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
   const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: '' })
@@ -222,12 +223,20 @@ const App = () => {
           >
             <FontAwesomeIcon icon={faSearch} />
           </button>
-          <input
-            type='color'
-            className='toolsPane__ColorSelect'
-            onChange={handleColorChange}
-            value={convertRgbToHex(objectApparance.strokeStyle)}
-          />
+          <div className='toolsPane__ColorSelectGroup'>
+            <div
+              className='toolsPane__ColorSelect'
+              style={{ backgroundColor: objectApparance.strokeStyle }}
+              onClick={() => colorPicker.current.click()}
+            />
+            <input
+              type='color'
+              className='toolsPane__ColorSelectInput'
+              onChange={handleColorChange}
+              ref={colorPicker}
+              value={convertRgbToHex(objectApparance.strokeStyle)}
+            />
+          </div>
         </div>
       </Draggable>
       <Draggable
