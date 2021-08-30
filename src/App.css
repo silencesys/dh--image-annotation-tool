@@ -224,3 +224,32 @@ body {
 .footer a:hover {
   color: rgb(var(--blue-500));
 }
+
+.openSeaDragon {
+  width: 100vw;
+  height: 100vh;
+  background: rgb(var(--grey-100));
+  display: flex;
+  position: relative;
+}
+.openSeaDragon__Canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.openSeaDragon__Canvas div {
+  border: none;
+  outline: none;
+}
+.openSeaDragon__Canvas:focus {
+  outline: none;
+}
+.cursor .openSeaDragon__Overlay:hover,
+.erasing .openSeaDragon__Overlay:hover {
+  border-color: rgba(173, 90, 46) !important;
+  background: rgba(173, 90, 46, 0.5) !important;
+}
+.erasing .openSeaDragon__Overlay:hover {
+  cursor: pointer;
+}

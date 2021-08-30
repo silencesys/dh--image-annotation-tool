@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard, faEraser, faMousePointer, faSearch, faHandPaper, faDrawSquare, faDrawPolygon } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
 import Canvas from './components/Canvas'
+import OpenSeaCanvas from './components/OpenSeaDragon'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 
@@ -130,12 +131,18 @@ const App = () => {
     return `rgba(${rgb.join(', ')}, ${opacity})`
   }
 
-  const handleColorChange = ({ target: { value: color } }) => {
-    console.log(hexToRGBA(color))
+  const handleColorChange = ({ target, nativeEvent: { srcElement } }) => {
+    const { value: color } = target
+    const fillStyle = hexToRGBA(color, 0.5)
+    const strokeStyle = hexToRGBA(color)
+
+    const event = new CustomEvent('colorUpdate', { detail: { fillStyle, strokeStyle } })
+    srcElement.dispatchEvent(event)
+
     setObjectApparance(state => ({
       ...state,
-      fillStyle: hexToRGBA(color, 0.5),
-      strokeStyle: hexToRGBA(color)
+      fillStyle,
+      strokeStyle
     }))
   }
 
@@ -159,18 +166,12 @@ const App = () => {
 </facsimile>`
 
   return (
-    <div>
-      <Canvas
-        isDragging={isDragging}
+    <div className={currentAction.toolName}>
+      <OpenSeaCanvas
         currentAction={currentAction}
-        setCurrentAction={setCurrentAction}
-        backgroundSettings={backgroundSettings}
-        setBackgroundSettings={setBackgroundSettings}
-        setObjects={setObjects}
-        objects={objects}
-        toolCallbacks={toolCallbacks}
         objectApparance={objectApparance}
-        temporaryObjectApparance={temporaryObjectApparance}
+        objects={objects}
+        setObjects={setObjects}
       />
       <Draggable
         onStart={() => setisDragging(true)}
@@ -231,6 +232,7 @@ const App = () => {
             />
             <input
               type='color'
+              id='tool_ColorPicker'
               className='toolsPane__ColorSelectInput'
               onChange={handleColorChange}
               ref={colorPicker}
