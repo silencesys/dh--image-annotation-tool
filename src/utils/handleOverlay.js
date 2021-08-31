@@ -2,14 +2,14 @@ import OpenSeadragon from 'openseadragon'
 
 let drag = null
 
-function drawRectangle (el, viewer) {
+function drawRectangle (rectangle, viewer, callback, deleteCallback) {
   return new OpenSeadragon.MouseTracker({
-    element: el.overlayElement,
+    element: rectangle.element,
     pressHandler: (event) => {
-      if (el.overlayElement.dataset.tool === 'erasing') {
-        return viewer.removeOverlay(el.overlayElement)
-      } else if (el.overlayElement.dataset.tool === 'cursor') {
-        drag = el
+      if (rectangle.element.dataset.tool === 'erasing') {
+        return deleteCallback(rectangle)
+      } else if (rectangle.element.dataset.tool === 'cursor') {
+        drag = rectangle
       }
     },
     dragHandler: (event) => {
@@ -18,12 +18,13 @@ function drawRectangle (el, viewer) {
       }
       const windowCoords = new OpenSeadragon.Point(event.originalEvent.x, event.originalEvent.y)
       const viewportCoords = viewer.viewport.windowToViewportCoordinates(windowCoords)
-      const overlay = viewer.getOverlayById(drag.overlayElement)
+      const overlay = viewer.getOverlayById(drag.element)
       overlay.update(viewportCoords, OpenSeadragon.Placement.CENTER)
-      overlay.drawHTML(drag.overlayElement.parentNode, viewer.viewport)
-      drag.location = overlay
+      overlay.drawHTML(drag.element.parentNode, viewer.viewport)
+      rectangle.location = overlay
     },
     releaseHandler: (event) => {
+      callback(rectangle)
       drag = null
     }
   })

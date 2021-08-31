@@ -245,6 +245,13 @@ body {
 .openSeaDragon__Canvas:focus {
   outline: none;
 }
+.openSeaDragon__Overlay {
+  pointer-events: none;
+}
+.cursor .openSeaDragon__Overlay,
+.erasing .openSeaDragon__Overlay {
+  pointer-events: all;
+}
 .cursor .openSeaDragon__Overlay:hover,
 .erasing .openSeaDragon__Overlay:hover {
   border-color: rgba(173, 90, 46) !important;
@@ -252,4 +259,7 @@ body {
 }
 .erasing .openSeaDragon__Overlay:hover {
   cursor: pointer;
+}
+.cursor .openSeaDragon__Overlay:hover {
+  cursor: move;
 }

@@ -17,7 +17,7 @@ const App = () => {
   const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
-  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: '' })
+  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: 'GC_MS_000486_291.dzi', url: 'https://lipnicebible.ff.cuni.cz/api/img/tile/dzi/GC_MS_000486_291.dzi' })
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState({ toolName: 'hand', callback: null, event: null })
   // This state is used to store the current state of dragging, so when user
@@ -172,6 +172,8 @@ const App = () => {
         objectApparance={objectApparance}
         objects={objects}
         setObjects={setObjects}
+        setBackgroundSettings={setBackgroundSettings}
+        backgroundSettings={backgroundSettings}
       />
       <Draggable
         onStart={() => setisDragging(true)}

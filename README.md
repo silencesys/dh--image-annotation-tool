@@ -19,3 +19,9 @@ git clone git@github.com:silencesys/dh--image-annotation-tool.git
 npm install
 npm start
 ```
+
+## Used components and libraries
+- [React](https://reactjs.org/)
+- [OpenSeadragon](https://openseadragon.github.io/)
+- [React Draggable](https://www.npmjs.com/package/react-draggable)
+- [Font Awesome](https://fontawesome.com/)
