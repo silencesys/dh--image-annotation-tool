@@ -143,23 +143,27 @@ const Canvas = ({
     const drawImageInBackgroundLayer = (url) => {
       const image = new Image()
       image.src = url
-      image.onload = () => {
-        const { naturalHeight, naturalWidth } = image
-        // Set size for each layer of the drawing board.
-        backgroundLayer.current.height = naturalHeight
-        backgroundLayer.current.width = naturalWidth
-        drawingLayer.current.height = naturalHeight
-        drawingLayer.current.width = naturalWidth
-        storageLayer.current.height = naturalHeight
-        storageLayer.current.width = naturalWidth
+      try {
+        image.onload = () => {
+          const { naturalHeight, naturalWidth } = image
+          // Set size for each layer of the drawing board.
+          backgroundLayer.current.height = naturalHeight
+          backgroundLayer.current.width = naturalWidth
+          drawingLayer.current.height = naturalHeight
+          drawingLayer.current.width = naturalWidth
+          storageLayer.current.height = naturalHeight
+          storageLayer.current.width = naturalWidth
 
-        setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
+          setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
 
-        const context = backgroundLayer.current.getContext('2d', { alpha: false })
-        context.imageSmoothingEnabled = false
-        context.drawImage(image, 0, 0, naturalWidth, naturalHeight)
+          const context = backgroundLayer.current.getContext('2d', { alpha: false })
+          context.imageSmoothingEnabled = false
+          context.drawImage(image, 0, 0, naturalWidth, naturalHeight)
 
-        canvasWrapper.current.style.display = 'block'
+          canvasWrapper.current.style.display = 'block'
+        }
+      } catch (e) {
+        // @TODO: add fail
       }
     }
     drawImageInBackgroundLayer(backgroundSettings.imgUrl)
