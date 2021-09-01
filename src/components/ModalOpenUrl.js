@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes } from '@fortawesome/pro-regular-svg-icons'
 import style from './ModalOpenUrl.module.css'
@@ -8,6 +8,20 @@ const ModalOpenUrl = ({
   openUrl = () => {}
 }) => {
   const [url, setUrl] = useState('')
+
+  useEffect(() => {
+    document.addEventListener('keydown', (e) => {
+      switch (e.code) {
+        case 'Escape':
+          closeModal()
+          break
+        case 'Enter':
+          openUrl(url)
+          break
+        default:
+      }
+    })
+  }, [])
 
   const handleChange = (e) => {
     setUrl(e.target.value)
