@@ -1,0 +1,73 @@
+.ModalNew__Content {
+  background-color: rgb(var(--white));
+  padding: 1.5rem;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-radius: .5rem;
+  min-width: 400px;
+  max-width: 500px;
+}
+.ModalNew__TitleBar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(var(--grey-200));
+}
+.ModalNew__Title {
+  font-size: .9rem;
+  text-transform: uppercase;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+}
+.ModalNew__CloseButton {
+  background-color: transparent;
+  border: none;
+  padding: 0 .5rem;
+  margin: 0;
+  font-size: .9rem;
+}
+.ModalNew__CloseButton:hover {
+  color: rgb(var(--red-500));
+}
+.ModalNew__Body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+.ModalNew__Body p {
+  margin: 0;
+  padding: 0;
+  color: rgb(var(--grey-500));
+  font-size: .8rem;
+  line-height: 1.2rem;
+}
+.ModalNew__Body strong {
+  display: block;
+  margin-top: .5rem;
+}
+.ModalNew__ChoiceButton {
+  align-content: center;
+  background-color: rgba(var(--blue-500), .1);
+  border: 1px solid rgba(var(--blue-500), .15);
+  border-radius: .5rem;
+  color: rgb(var(--blue-500));
+  display: block;
+  justify-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  transition: all .3s ease;
+  width: 100%;
+}
+.ModalNew__ChoiceButton:hover {
+  background-color: rgba(var(--red-500), .1);
+  border: 1px solid rgba(var(--red-500), .15);
+  color: rgb(var(--red-500));
+}
+.ModalNew__ChoiceButton__Icon {
+  display: block;
+  margin: auto;
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}

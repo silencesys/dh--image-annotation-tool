@@ -8,6 +8,8 @@ import './App.css'
 import Canvas from './components/Canvas'
 import OpenSeaCanvas from './components/OpenSeaDragon'
 import MenuBar from './components/MenuBar'
+import Modal from './components/Modal'
+import ModalNew from './components/ModalNew'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 
@@ -40,6 +42,7 @@ const App = () => {
   const temporaryObjectApparance = useMemo(() => ({
     fillStyle: config.temporaryFill, strokeStyle: config.temporaryStrokeFill, lineWidth: 3
   }), [])
+  const [modal, setModal] = useState(null)
   // Code pane visibility
   const [codePaneVisible, setCodePaneVisible] = useState(false)
   // Menu items
@@ -47,7 +50,7 @@ const App = () => {
     name: 'File',
     items: [{
       name: 'New',
-      action: () => {}
+      action: () => setModal('ModalNew')
     }, {
       name: 'Open...',
       action: () => {}
@@ -98,6 +101,12 @@ const App = () => {
     OpenSeaCanvas
   }
   const SelectedCanvas = canvasComponents[mode]
+  const modalComponents = {
+    ModalNew
+  }
+  const SelectedModal = modalComponents[modal]
+
+  const closeModal = () => setModal(null)
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -154,7 +163,9 @@ const App = () => {
   /**
    * Choose a background file from the file system.
   */
-  const chooseFile = () => {
+  const handleOpenFile = () => {
+    closeModal()
+    setMode('Canvas')
     const file = document.createElement('input')
     file.type = 'file'
     file.accept = '.png, .jpg, .jpeg, .gif'
@@ -345,9 +356,6 @@ const App = () => {
             You should use <span className='code'>@facs</span> attribute to align transcription with the image.
           </p>
           <div className='optionsPane__ButtonRow'>
-            <button onClick={chooseFile} className='primary'>
-              Open image
-            </button>
             <button onClick={toolCallbacks?.current?.handleResetCanvas} title='Erase everything from canvas.'>
               Reset
             </button>
@@ -361,6 +369,12 @@ const App = () => {
       <div className='footer'>
         This project was developed by <a href='https://rocek.dev' target='_blank' rel='noreferrer'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
       </div>
+      {modal && <Modal>
+        <SelectedModal
+          closeModal={closeModal}
+          handleOpenFile={handleOpenFile}
+        />
+      </Modal>}
     </div>
   )
 }
