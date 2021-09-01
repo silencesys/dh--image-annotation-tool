@@ -1,51 +1,17 @@
 import style from './MenuBar.module.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck } from '@fortawesome/pro-solid-svg-icons'
+import { faExpand } from '@fortawesome/pro-duotone-svg-icons'
 
-const MenuBar = () => {
-  const menu = [{
-      name: 'File',
-      items: [{
-        name: 'New',
-        action: () => {}
-      }, {
-        name: 'Open...',
-        action: () => {}
-      }, {}, {
-        name: 'Save...',
-        action: () => {}
-      }, {}, {
-        name: 'Refresh',
-        action: () => window.location.reload()
-      }]
-    }, {
-      name: 'Window',
-      items: [{
-          name: 'Code Pane',
-          action: () => {}
-        }
-      ]
-    }, {
-      name: 'Help',
-      items: [{
-        name: 'IMA Help...',
-        action: () => {}
-      },{
-        name: 'What\'s New...',
-        action: () => {}
-      }, {}, {
-        name: 'About IMA',
-        action: () => {}
-      }, {}, {
-        name: 'Send feedback',
-        action: () => {}
-      }, {
-        name: 'GitHub',
-        action: () => {}
-      }]
-    }].map(item => {
+const MenuBar = ({
+  menuItems
+}) => {
+  const menu = menuItems.map(item => {
     const subMenu = item?.items?.map(subItem => {
           if (typeof subItem.action === 'function') {
             return (<li className={style.SubMenuItem}>
               <button className={style.ButtonSecondary} onClick={subItem.action}>
+                {subItem.status && <FontAwesomeIcon icon={faCheck} className={style.ButtonSecondary__Icon} />}
                 {subItem.name}
               </button>
             </li>)
@@ -55,7 +21,6 @@ const MenuBar = () => {
             </li>)
           }
     })
-
     return (
       <li className={style.MenuItem}>
         <button className={style.Button} onClick={item.action}>
@@ -67,8 +32,6 @@ const MenuBar = () => {
       </li>
     )
   })
-
-
 
   return (
     <ul className={style.MenuBar}>

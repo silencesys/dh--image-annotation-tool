@@ -8,7 +8,7 @@
   list-style: none;
   font-size: 1rem;
   box-sizing: border-box;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.01), 0 5px 20px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05), 0 5px 20px rgba(0, 0, 0, 0.01);
 }
 .MenuItem {
   display: inline-block;
@@ -24,7 +24,7 @@
   background-color: rgb(var(--white));
   border-radius: .5rem;
   padding: 0;
-  margin: .05rem 0 0 -.25rem;
+  margin: .05rem 0 0 0rem;
   min-width: 200px;
   max-width: 500px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.01);
@@ -70,6 +70,9 @@
   text-align: left;
   transition: all .3s ease;
 }
+.Button {
+  padding: .5rem .75rem;
+}
 .Button:hover {
   background-color: rgb(var(--grey-100));
 }
@@ -79,4 +82,8 @@
 .ButtonSecondary:hover {
   color: rgb(var(--white));
   background-color: rgb(var(--blue-500));
+}
+.ButtonSecondary__Icon {
+  margin-right: .5rem;
+  font-size: .8rem;
 }

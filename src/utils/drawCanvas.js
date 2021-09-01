@@ -45,7 +45,11 @@ function drawRectangle (canvas, callback) {
     },
     releaseHandler: (event) => {
       if (drag && drag.location) {
-        callback(drag)
+        try {
+          callback(drag)
+        } catch (e) {
+          console.error(e)
+        }
       }
       drag = null
     }

@@ -24,7 +24,11 @@ function drawRectangle (rectangle, viewer, callback, deleteCallback) {
       rectangle.location = overlay
     },
     releaseHandler: (event) => {
-      callback(rectangle)
+      try {
+        callback(rectangle)
+      } catch (e) {
+        console.error(e)
+      }
       drag = null
     }
   })

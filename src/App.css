@@ -47,8 +47,8 @@ body {
 }
 .toolsPane {
   position: fixed;
-  left: 3rem;
-  top: 200px;
+  left: 1.5rem;
+  top: 100px;
   background-color: rgb(var(--white));
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
   border-radius: .5rem;

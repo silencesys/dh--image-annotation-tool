@@ -30,6 +30,8 @@ const App = () => {
   const [codeTheme, setCodeTheme] = useState(stackoverflowLight)
   // List of available tool callbacks.
   const toolCallbacks = useRef({})
+  const [mode, setMode] = useState('OpenSeaCanvas')
+  const [fullScreen, setFullScreen] = useState(false)
   // Configuration for drew objects.
   const [objectApparance, setObjectApparance] = useState({
     fillStyle: config.fill, strokeStyle: config.strokeFill, lineWidth: 3
@@ -38,6 +40,76 @@ const App = () => {
   const temporaryObjectApparance = useMemo(() => ({
     fillStyle: config.temporaryFill, strokeStyle: config.temporaryStrokeFill, lineWidth: 3
   }), [])
+  // Code pane visibility
+  const [codePaneVisible, setCodePaneVisible] = useState(false)
+  // Menu items
+  const menuItems = [{
+    name: 'File',
+    items: [{
+      name: 'New',
+      action: () => {}
+    }, {
+      name: 'Open...',
+      action: () => {}
+    }, {}, {
+      name: 'Save...',
+      action: () => {}
+    }, {}, {
+      name: 'Refresh',
+      action: () => window.location.reload()
+    }]
+  },{
+    name: 'View',
+    items: [{
+        name: `${fullScreen ? 'Exit' : 'Enter'} Fullscreen`,
+        action: () => toggleFullScreen(),
+        status: codePaneVisible
+      }
+    ]
+  }, {
+    name: 'Window',
+    items: [{
+        name: 'Code Pane',
+        action: () => setCodePaneVisible(state => !state),
+        status: codePaneVisible
+      }
+    ]
+  }, {
+    name: 'Help',
+    items: [{
+      name: 'IMA Help...',
+      action: () => {}
+    },{
+      name: 'What\'s New...',
+      action: () => {}
+    }, {}, {
+      name: 'About IMA',
+      action: () => {}
+    }, {}, {
+      name: 'Send feedback',
+      action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool/issues', '_blank')
+    }, {
+      name: 'GitHub',
+      action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool', '_blank')
+    }]
+  }]
+  const canvasComponents = {
+    Canvas,
+    OpenSeaCanvas
+  }
+  const SelectedCanvas = canvasComponents[mode]
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      setFullScreen(true)
+      document.documentElement.requestFullscreen()
+    } else {
+      if (document.exitFullscreen) {
+        setFullScreen(false)
+        document.exitFullscreen()
+      }
+    }
+  }
 
   /**
    * Register the renderer transformer
@@ -168,14 +240,18 @@ const App = () => {
 
   return (
     <div className={currentAction.toolName}>
-      <MenuBar />
-      <OpenSeaCanvas
+      <MenuBar menuItems={menuItems} />
+      <SelectedCanvas
         currentAction={currentAction}
         objectApparance={objectApparance}
         objects={objects}
         setObjects={setObjects}
         setBackgroundSettings={setBackgroundSettings}
         backgroundSettings={backgroundSettings}
+        isDragging={isDragging}
+        setCurrentAction={setCurrentAction}
+        toolCallbacks={toolCallbacks}
+        temporaryObjectApparance={temporaryObjectApparance}
       />
       <Draggable
         onStart={() => setisDragging(true)}
@@ -193,13 +269,14 @@ const App = () => {
           >
             <FontAwesomeIcon icon={faMousePointer} />
           </button>
-          <button
+          {/* Disable path drawing tool as path drawing is not yet supported in OpenSeadragon */}
+          {mode !== 'OpenSeaCanvas' && <button
             onClick={(e) => selectTool(e, 'pathDrawing', toolCallbacks?.current?.drawPolygonShape)}
             className={currentAction.toolName === 'pathDrawing' ? 'toolsPane__Confirmation' : ''}
             title='Polygon drawing tool, click to canvas to add points, click again on this button to finish drawing.'
           >
             <FontAwesomeIcon icon={faDrawPolygon} />
-          </button>
+          </button>}
           <button
             onClick={(e) => selectTool(e, 'rectangleDrawing')}
             className={currentAction.toolName === 'rectangleDrawing' ? 'toolsPane__Confirmation' : ''}
@@ -245,7 +322,7 @@ const App = () => {
           </div>
         </div>
       </Draggable>
-      {/* <Draggable
+      {codePaneVisible && <Draggable
         onStart={() => setisDragging(true)}
         onStop={() => setisDragging(false)}
         handle='.optionsPane__Head'
@@ -280,7 +357,7 @@ const App = () => {
             </button>
           </div>
         </div>
-      </Draggable> */}
+      </Draggable>}
       <div className='footer'>
         This project was developed by <a href='https://rocek.dev' target='_blank' rel='noreferrer'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
       </div>

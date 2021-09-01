@@ -63,8 +63,8 @@ const OpenSeaDragonCanvas = ({
      * @param {Bool} state - whether should be panning active.
     */
     const enablePan = (state) => {
-      viewer.viewport.panHorizontal = state
-      viewer.viewport.panVertical = state
+      viewer.panHorizontal = state
+      viewer.panVertical = state
     }
     /**
      * Enable canvas zooming.
@@ -134,8 +134,8 @@ const OpenSeaDragonCanvas = ({
         }
         break
       case 'zoom':
-        enablePan(false)
         enableZoom(true)
+        enablePan(false)
         enableMouseNav(true)
         break
       case 'erasing':
