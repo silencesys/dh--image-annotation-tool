@@ -26,6 +26,7 @@
   padding: 0 .5rem;
   margin: 0;
   font-size: .9rem;
+  color: rgb(var(--grey-800));
 }
 .ModalNew__CloseButton:hover {
   color: rgb(var(--red-500));
@@ -56,7 +57,7 @@
   justify-items: center;
   justify-content: center;
   margin-bottom: 1rem;
-  padding: 1rem;
+  padding: 2rem 1rem;
   transition: all .3s ease;
   width: 100%;
 }

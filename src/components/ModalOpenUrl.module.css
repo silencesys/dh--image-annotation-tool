@@ -1,0 +1,59 @@
+
+.ModalOpenUrl__TitleBar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(var(--grey-200));
+}
+.ModalOpenUrl__Title {
+  font-size: .9rem;
+  text-transform: uppercase;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+}
+.ModalOpenUrl__CloseButton {
+  background-color: transparent;
+  border: none;
+  padding: 0 .5rem;
+  margin: 0;
+  font-size: .9rem;
+  color: rgb(var(--grey-800));
+}
+.ModalOpenUrl__CloseButton:hover {
+  color: rgb(var(--red-500));
+}
+.ModalOpenUrl__Content {
+  background-color: rgb(var(--white));
+  padding: 1.5rem;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-radius: .5rem;
+  min-width: 400px;
+  max-width: 500px;
+}
+.ModalOpenUrl__Input {
+  width: 100%;
+  padding: .5rem;
+  box-sizing: border-box;
+  background-color: rgb(var(--grey-200));
+  color: rgb(var(--black));
+  border: none;
+  margin-bottom: .5rem;
+}
+.ModalOpenUrl__Input:focus {
+  outline: none;
+}
+.ModalOpenUrl__Button {
+  background-color: rgb(var(--blue-500));
+  color: rgb(var(--white-button));
+  padding: .5rem 1rem;
+  margin: 0;
+  border: none;
+  border-radius: .5rem;
+  transition: all .3s ease;
+  margin-top: 1rem;
+}
+.ModalOpenUrl__Button:hover {
+  background-color: rgb(var(--red-500));
+}

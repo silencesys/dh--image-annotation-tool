@@ -52,6 +52,15 @@ const OpenSeaDragonCanvas = ({
     return () => {
       viewer && viewer.destroy()
     }
+  }, [])
+
+  /**
+   * Open new image when background settings change.
+  */
+  useEffect(() => {
+    if (viewer) {
+      viewer.open(backgroundSettings.url)
+    }
   }, [backgroundSettings.url, viewer])
 
   /**

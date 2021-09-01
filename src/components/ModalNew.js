@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimes, faDesktopAlt, faBrowser } from '@fortawesome/pro-duotone-svg-icons'
+import { faTimes } from '@fortawesome/pro-regular-svg-icons'
+import { faDesktopAlt, faBrowser } from '@fortawesome/pro-duotone-svg-icons'
 import style from './ModalNew.module.css'
 
 const ModalNew = ({

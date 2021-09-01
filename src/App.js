@@ -10,6 +10,7 @@ import OpenSeaCanvas from './components/OpenSeaDragon'
 import MenuBar from './components/MenuBar'
 import Modal from './components/Modal'
 import ModalNew from './components/ModalNew'
+import ModalOpenUrl from './components/ModalOpenUrl'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 
@@ -20,7 +21,7 @@ const App = () => {
   const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
-  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: 'GC_MS_000486_291.dzi', url: 'https://lipnicebible.ff.cuni.cz/api/img/tile/dzi/GC_MS_000486_291.dzi' })
+  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: 'GC_MS_000486_291.dzi', url: null })
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState({ toolName: 'hand', callback: null, event: null })
   // This state is used to store the current state of dragging, so when user
@@ -102,11 +103,17 @@ const App = () => {
   }
   const SelectedCanvas = canvasComponents[mode]
   const modalComponents = {
-    ModalNew
+    ModalNew,
+    ModalOpenUrl
   }
   const SelectedModal = modalComponents[modal]
 
   const closeModal = () => setModal(null)
+
+  const handleOpenUrl = () => {
+    setModal(null)
+    setModal('ModalOpenUrl')
+  }
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -181,6 +188,16 @@ const App = () => {
       }
       reader.readAsDataURL(file.files[0])
     })
+  }
+
+  const openUrl = (url) => {
+    if (url) {
+      const fileName = getFileName(url)
+      setBackgroundSettings(state => ({ ...state, fileName: fileName, url: url }))
+      document.title = `${fileName} - Image Annotation Tool`
+      setMode('OpenSeaCanvas')
+      setModal(null)
+    }
   }
 
   /**
@@ -373,6 +390,8 @@ const App = () => {
         <SelectedModal
           closeModal={closeModal}
           handleOpenFile={handleOpenFile}
+          handleOpenUrl={handleOpenUrl}
+          openUrl={openUrl}
         />
       </Modal>}
     </div>
