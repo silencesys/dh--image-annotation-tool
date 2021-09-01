@@ -1,0 +1,82 @@
+.MenuBar {
+  background-color: rgb(var(--white));
+  position: absolute;
+  z-index: 999;
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem;
+  list-style: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.01), 0 5px 20px rgba(0, 0, 0, 0.01);
+}
+.MenuItem {
+  display: inline-block;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.SubMenu {
+  display: none;
+  position: absolute;
+  background-color: rgb(var(--white));
+  border-radius: .5rem;
+  padding: 0;
+  margin: .05rem 0 0 -.25rem;
+  min-width: 200px;
+  max-width: 500px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.01);
+}
+.SubMenuDivider {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  height: 1px;
+  width: calc(100% - 1rem);
+  background-color: rgb(var(--grey-200));
+  border: none;
+}
+.SubMenuItemDividerWrapper {
+  padding: 0;
+  margin: 0;
+  position: relative;
+  list-style: none;
+}
+.MenuItem:hover .SubMenu {
+  display: block;
+}
+.SubMenuItem {
+  display: block;
+  list-style: none;
+  padding: .25rem;
+  margin: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.Button,
+.ButtonSecondary {
+  color: rgb(var(--grey-500));
+  border: none;
+  background-color: transparent;
+  display: block;
+  box-sizing: border-box;
+  border-radius: .25rem;
+  font-size: .9rem;
+  padding: .5rem;
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  transition: all .3s ease;
+}
+.Button:hover {
+  background-color: rgb(var(--grey-100));
+}
+.ButtonSecondary {
+  padding: .5rem;
+}
+.ButtonSecondary:hover {
+  color: rgb(var(--white));
+  background-color: rgb(var(--blue-500));
+}

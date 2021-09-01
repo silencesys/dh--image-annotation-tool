@@ -71,7 +71,6 @@ body {
   background-color: rgb(var(--white));
   border-bottom: 1px solid rgb(var(--grey-200));
   color: rgb(var(--grey-800));
-  cursor: pointer;
   transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   margin: 0;
 }
@@ -100,7 +99,6 @@ body {
   padding: 0;
   margin: .5rem auto;
   border-radius: .25rem;
-  cursor: pointer;
   transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .toolsPane__ColorSelect:hover {

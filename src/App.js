@@ -7,6 +7,7 @@ import { faClipboard, faEraser, faMousePointer, faSearch, faHandPaper, faDrawSqu
 import './App.css'
 import Canvas from './components/Canvas'
 import OpenSeaCanvas from './components/OpenSeaDragon'
+import MenuBar from './components/MenuBar'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 
@@ -167,6 +168,7 @@ const App = () => {
 
   return (
     <div className={currentAction.toolName}>
+      <MenuBar />
       <OpenSeaCanvas
         currentAction={currentAction}
         objectApparance={objectApparance}
@@ -243,7 +245,7 @@ const App = () => {
           </div>
         </div>
       </Draggable>
-      <Draggable
+      {/* <Draggable
         onStart={() => setisDragging(true)}
         onStop={() => setisDragging(false)}
         handle='.optionsPane__Head'
@@ -278,7 +280,7 @@ const App = () => {
             </button>
           </div>
         </div>
-      </Draggable>
+      </Draggable> */}
       <div className='footer'>
         This project was developed by <a href='https://rocek.dev' target='_blank' rel='noreferrer'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
       </div>
