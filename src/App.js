@@ -11,8 +11,11 @@ import MenuBar from './components/MenuBar'
 import Modal from './components/Modal'
 import ModalNew from './components/ModalNew'
 import ModalOpenUrl from './components/ModalOpenUrl'
+import ModalWhatsNew from './components/ModalWhatsNew'
+import ModalAbout from './components/ModalAbout'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
+import Tooltip from './components/ToolTooltip'
 
 const App = () => {
   // Draggable error silenter.
@@ -21,7 +24,7 @@ const App = () => {
   const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
-  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: 'GC_MS_000486_291.dzi', url: null })
+  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: null, url: null })
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState({ toolName: 'hand', callback: null, event: null })
   // This state is used to store the current state of dragging, so when user
@@ -43,7 +46,7 @@ const App = () => {
   const temporaryObjectApparance = useMemo(() => ({
     fillStyle: config.temporaryFill, strokeStyle: config.temporaryStrokeFill, lineWidth: 3
   }), [])
-  const [modal, setModal] = useState(null)
+  const [modal, setModal] = useState('ModalWhatsNew')
   // Code pane visibility
   const [codePaneVisible, setCodePaneVisible] = useState(false)
   // Menu items
@@ -81,14 +84,11 @@ const App = () => {
   }, {
     name: 'Help',
     items: [{
-      name: 'IMA Help...',
-      action: () => {}
-    },{
       name: 'What\'s New...',
-      action: () => {}
+      action:  () => setModal('ModalWhatsNew')
     }, {}, {
       name: 'About IMA',
-      action: () => {}
+      action: () =>  setModal('ModalAbout')
     }, {}, {
       name: 'Send feedback',
       action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool/issues', '_blank')
@@ -104,7 +104,9 @@ const App = () => {
   const SelectedCanvas = canvasComponents[mode]
   const modalComponents = {
     ModalNew,
-    ModalOpenUrl
+    ModalOpenUrl,
+    ModalWhatsNew,
+    ModalAbout
   }
   const SelectedModal = modalComponents[modal]
 
@@ -175,7 +177,7 @@ const App = () => {
     setMode('Canvas')
     const file = document.createElement('input')
     file.type = 'file'
-    file.accept = '.png, .jpg, .jpeg, .gif'
+    file.accept = '.png, .jpg, .jpeg, .gif, .heic'
     file.click()
     file.addEventListener('change', item => {
       const reader = new FileReader()
@@ -266,6 +268,39 @@ const App = () => {
   }).join('') + `  </surface>
 </facsimile>`
 
+const toolDescription = {
+  cursor: {
+    name: 'Move tool',
+    description: 'Move drew objects on the canvas.',
+    img: '/tooltip/cursor.gif'
+  },
+  zoom: {
+    name: 'Zoom tool',
+    description: 'Zoom in and out on an image. Hold [CTRL] or right-click to zoom out.',
+    img: '/tooltip/zoom.gif'
+  },
+  rectangle: {
+    name: 'Rectangle tool',
+    description: 'Click and drag to draw a rectangle.',
+    img: '/tooltip/rectangle.gif'
+  },
+  eraser: {
+    name: 'Eraser tool',
+    description: 'Click on drew objects on the canvas to remove them.',
+    img: '/tooltip/eraser.gif'
+  },
+  hand: {
+    name: 'Hand tool',
+    description: 'Pans over different parts of an image',
+    img: '/tooltip/pan.gif'
+  },
+  polygon: {
+    name: 'Polygon tool',
+    description: 'Click to canvas to add points, click again on this button to finish drawing.',
+    img: '/tooltip/polygon.gif'
+  }
+}
+
   return (
     <div className={currentAction.toolName}>
       <MenuBar menuItems={menuItems} />
@@ -290,49 +325,53 @@ const App = () => {
       >
         <div className='toolsPane' ref={toolBar}>
           <div className='toolsPane__Head' />
-          <button
-            onClick={(e) => selectTool(e, 'cursor')}
-            className={currentAction.toolName === 'cursor' ? 'toolsPane__Confirmation' : ''}
-            title='Move tool, move the objects on the canvas.'
-          >
-            <FontAwesomeIcon icon={faMousePointer} />
-          </button>
+          <Tooltip tool={toolDescription.cursor}>
+            <button
+              onClick={(e) => selectTool(e, 'cursor')}
+              className={currentAction.toolName === 'cursor' ? 'toolsPane__Confirmation' : ''}
+            >
+              <FontAwesomeIcon icon={faMousePointer} />
+            </button>
+          </Tooltip>
           {/* Disable path drawing tool as path drawing is not yet supported in OpenSeadragon */}
-          {mode !== 'OpenSeaCanvas' && <button
+          {mode !== 'OpenSeaCanvas' && <Tooltip tool={toolDescription.polygon}><button
             onClick={(e) => selectTool(e, 'pathDrawing', toolCallbacks?.current?.drawPolygonShape)}
             className={currentAction.toolName === 'pathDrawing' ? 'toolsPane__Confirmation' : ''}
-            title='Polygon drawing tool, click to canvas to add points, click again on this button to finish drawing.'
           >
             <FontAwesomeIcon icon={faDrawPolygon} />
-          </button>}
-          <button
-            onClick={(e) => selectTool(e, 'rectangleDrawing')}
-            className={currentAction.toolName === 'rectangleDrawing' ? 'toolsPane__Confirmation' : ''}
-            title='Rectangle drawing tool, click and drag to draw a rectangle.'
-          >
-            <FontAwesomeIcon icon={faDrawSquare} />
-          </button>
-          <button
-            onClick={(e) => selectTool(e, 'erasing')}
-            className={currentAction.toolName === 'erasing' ? 'toolsPane__Confirmation' : ''}
-            title='Eraser tool, click on drew objects on the canvas to remove them.'
-          >
-            <FontAwesomeIcon icon={faEraser} />
-          </button>
+          </button></Tooltip>}
+          <Tooltip tool={toolDescription.rectangle}>
+            <button
+              onClick={(e) => selectTool(e, 'rectangleDrawing')}
+              className={currentAction.toolName === 'rectangleDrawing' ? 'toolsPane__Confirmation' : ''}
+            >
+              <FontAwesomeIcon icon={faDrawSquare} />
+            </button>
+          </Tooltip>
+          <Tooltip tool={toolDescription.eraser}>
+            <button
+              onClick={(e) => selectTool(e, 'erasing')}
+              className={currentAction.toolName === 'erasing' ? 'toolsPane__Confirmation' : ''}
+            >
+              <FontAwesomeIcon icon={faEraser} />
+            </button>
+          </Tooltip>
+          <Tooltip tool={toolDescription.hand}>
           <button
             onClick={(e) => selectTool(e, 'hand')}
             className={currentAction.toolName === 'hand' ? 'toolsPane__Confirmation' : ''}
-            title='Hand tool, grab the canvas and move it around the board.'
           >
             <FontAwesomeIcon icon={faHandPaper} />
           </button>
-          <button
-            onClick={(e) => selectTool(e, 'zoom')}
-            className={currentAction.toolName === 'zoom' ? 'toolsPane__Confirmation' : ''}
-            title='Zoom tool, click to zoom-in, hold ctrl and click to zoom-out.'
-          >
-            <FontAwesomeIcon icon={faSearch} />
-          </button>
+          </Tooltip>
+          <Tooltip tool={toolDescription.zoom}>
+            <button
+              onClick={(e) => selectTool(e, 'zoom')}
+              className={currentAction.toolName === 'zoom' ? 'toolsPane__Confirmation' : ''}
+            >
+              <FontAwesomeIcon icon={faSearch} />
+            </button>
+          </Tooltip>
           <div className='toolsPane__ColorSelectGroup'>
             <div
               className='toolsPane__ColorSelect'
@@ -373,9 +412,6 @@ const App = () => {
             You should use <span className='code'>@facs</span> attribute to align transcription with the image.
           </p>
           <div className='optionsPane__ButtonRow'>
-            <button onClick={toolCallbacks?.current?.handleResetCanvas} title='Erase everything from canvas.'>
-              Reset
-            </button>
             <button className='optoinsPane__ClipboardButton' onClick={() => copyTextToClipboard(code)}>
               <FontAwesomeIcon icon={faClipboard} className='optionsPane__ClipboardButton__Icon' />
               Copy to clipboard
@@ -392,6 +428,7 @@ const App = () => {
           handleOpenFile={handleOpenFile}
           handleOpenUrl={handleOpenUrl}
           openUrl={openUrl}
+          doneCallback={() => setModal('ModalNew')}
         />
       </Modal>}
     </div>

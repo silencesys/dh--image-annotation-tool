@@ -28,12 +28,12 @@ const ModalOpenUrl = ({
   }
 
   return (
-    <div className={style.ModalOpenUrl__Content}>
-      <div className={style.ModalOpenUrl__TitleBar}>
-        <h1 className={style.ModalOpenUrl__Title}>
+    <div className='Modal__Content'>
+      <div className='Modal__TitleBar'>
+        <h1 className='Modal__Title'>
           Open High resolution source
         </h1>
-        <button className={style.ModalOpenUrl__CloseButton} onClick={closeModal}>
+        <button className='Modal__CloseButton' onClick={closeModal}>
           <FontAwesomeIcon icon={faTimes} />
         </button>
       </div>

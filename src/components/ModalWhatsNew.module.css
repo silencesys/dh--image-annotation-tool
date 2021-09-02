@@ -1,0 +1,65 @@
+.Modal__Body {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  width: 800px;
+  box-sizing: border-box;
+}
+.Modal__SidePane {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+.ButtonList {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+.ButtonList__Button {
+  font-size: 1rem;
+  color: rgb(var(--grey-500));
+  background: transparent;
+  border: none;
+  text-align: left;
+  display: block;
+  padding: .5rem 0;
+  margin-left: calc(.75rem + 2px);
+}
+.ButtonList__Button:hover {
+  color: rgb(var(--black));
+}
+.ButtonList__Button_Active {
+  font-weight: bold;
+  border-left: 2px solid rgb(var(--grey-200));
+  padding-left: .75rem;
+  margin-left: 0;
+  color: rgb(var(--black));
+}
+.Modal__SidePane__Button {
+  background-color: transparent;
+  border: 2px solid rgb(var(--grey-300));
+  color: rgb(var(--grey-400));
+  border-radius: 1rem;
+  padding: .5rem 1rem;
+  display: inline-block;
+}
+.Modal__SidePane__Button:hover {
+  background-color: rgb(var(--grey-300));
+  color: rgb(var(--white));
+}
+.Content img {
+  border-radius: .5rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--grey-100));
+}
+.Content h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: rgb(var(--black));
+  margin: 2rem 0 .5rem;
+}
+.Content p {
+  font-size: 1rem;
+  line-height: 1.6rem;
+  color: rgb(var(--grey-500));
+}

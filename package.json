@@ -1,6 +1,7 @@
 {
   "name": "tei-images",
   "version": "1.2.0",
+  "description": "A library for working with TEI images",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
