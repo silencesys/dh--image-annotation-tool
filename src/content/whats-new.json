@@ -1,0 +1,16 @@
+[{
+  "title": "IIIF and DZI support",
+  "slug": "iiif-support",
+  "cover": "/whats-new/iiif-support.png",
+  "content": "IMA now supports zoning on IIIF and DZI images, simply choose File > New > Open URL and paste your high-resolution zoomable image URL."
+}, {
+  "title": "Enhanced tooltips for tools",
+  "slug": "enhanced-tooltips",
+  "cover": "/whats-new/enhanced-tooltips.png",
+  "content": "The tooltips for the tools have been improved to show the full name of the tool and its description with small video showing their functionality."
+}, {
+  "title": "New menus",
+  "slug": "new-menus",
+  "cover": "/whats-new/new-menus.png",
+  "content": "A new slightly more complex of menus was introduced. This will change will bring much convinient way to introduce new features in future."
+}]

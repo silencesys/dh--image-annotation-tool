@@ -2,29 +2,14 @@ import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes } from '@fortawesome/pro-regular-svg-icons'
 import style from './ModalWhatsNew.module.css'
+import content from '../content/whats-new.json'
 
 const ModalWhatsNew = ({
   closeModal = () => {},
   doneCallback = null
 }) => {
   const [selectedNewIndex, setSelectedNewIndex] = useState(0)
-
-  const content = [{
-    title: 'IIIF and DZI support',
-    slug: 'iiif-support',
-    cover: '/whats-new/iiif-support.png',
-    content: 'IMA now supports zoning on IIIF and DZI images, simply choose File > New > Open URL and paste your high-resolution zoomable image URL.'
-  }, {
-    title: 'Enhanced tooltips for tools',
-    slug: 'enhanced-tooltips',
-    cover: '/whats-new/enhanced-tooltips.png',
-    content: 'The tooltips for the tools have been improved to show the full name of the tool and its description with small video showing their functionality.'
-  }, {
-    title: 'New menus',
-    slug: 'new-menus',
-    cover: '/whats-new/new-menus.png',
-    content: 'A new slightly more complex of menus was introduced. This will change will bring much convinient way to introduce new features in future.'
-  }]
+  const visibleContent = content.slice(0, 5)
 
   const closeThisModal = () => {
     if (typeof doneCallback === 'function') {
@@ -47,7 +32,7 @@ const ModalWhatsNew = ({
       <div className={style.Modal__Body}>
       <div className={style.Modal__SidePane}>
         <ul className={style.ButtonList}>
-          {content.map(({ title, slug }, index) => (
+          {visibleContent.map(({ title, slug }, index) => (
             <li key={slug}>
               <button className={`${style.ButtonList__Button} ${index === selectedNewIndex && style.ButtonList__Button_Active}`} onClick={() => setSelectedNewIndex(index)}>
                 {title}
@@ -56,7 +41,7 @@ const ModalWhatsNew = ({
           ))}
         </ul>
         <div>
-          {selectedNewIndex < content.length - 1 ? <button className={style.Modal__SidePane__Button} onClick={() => setSelectedNewIndex(state => state + 1)}>
+          {selectedNewIndex < visibleContent.length - 1 ? <button className={style.Modal__SidePane__Button} onClick={() => setSelectedNewIndex(state => state + 1)}>
             Next
           </button> :
           <button className={style.Modal__SidePane__Button} onClick={closeThisModal}>

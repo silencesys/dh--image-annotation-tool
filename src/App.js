@@ -80,8 +80,7 @@ const App = () => {
     name: 'View',
     items: [{
         name: `${fullScreen ? 'Exit' : 'Enter'} Fullscreen`,
-        action: () => toggleFullScreen(),
-        status: codePaneVisible
+        action: () => toggleFullScreen()
       }
     ]
   }, {
