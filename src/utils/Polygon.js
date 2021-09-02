@@ -28,6 +28,19 @@ class Polygon extends Path2D {
     return this._originalApparance
   }
 
+  get export () {
+    return {
+      points: this.points,
+      scale: this.scale,
+      strokeStyle: this.strokeStyle,
+      fillStyle: this.fillStyle,
+      lineWidth: this.lineWidth,
+      apperance: this._originalApparance,
+      centre: this._centre,
+      name: this._name
+    }
+  }
+
   copyApparance (apparance) {
     this._originalApparance.strokeStyle = apparance.strokeStyle
     this._originalApparance.fillStyle = apparance.fillStyle

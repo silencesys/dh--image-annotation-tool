@@ -9,7 +9,9 @@ const OpenSeaDragonCanvas = ({
   objectApparance = { fillStyle: 'red' },
   setObjects,
   backgroundSettings,
-  setBackgroundSettings
+  setBackgroundSettings,
+  setPreoloadObjects,
+  preloadObjects
 }) => {
   const [viewer, setViewer] = useState(null)
   const wrapper = useRef(null)
@@ -58,10 +60,29 @@ const OpenSeaDragonCanvas = ({
    * Open new image when background settings change.
   */
   useEffect(() => {
+    const renderPreloaded = () => {
+        viewer.clearOverlays()
+        preloadObjects.forEach(object => {
+          const overlayElement = document.createElement('div')
+          overlayElement.style.background = object.apparance.fill
+          overlayElement.style.borderWidth = object.apparance.strokeWidth
+          overlayElement.style.borderStyle = 'solid'
+          overlayElement.style.borderColor = object.apparance.stroke
+          overlayElement.className = 'openSeaDragon__Overlay'
+
+          const rectangle = viewer.viewport.imageToViewportRectangle(object.scaled.x, object.scaled.y, object.scaled.width, object.scaled.height)
+          viewer.addOverlay(overlayElement, new OpenSeaDragon.Rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height))
+          const osdRectangle = new OSDRectangle(rectangle, overlayElement)
+          osdRectangle.scaleWith(viewer.viewport.viewportToImageRectangle.bind(viewer.viewport))
+          setObjects(objects => [...objects, osdRectangle])
+        })
+    }
+
     if (viewer) {
       viewer.open(backgroundSettings.url)
+      viewer.addHandler('open', renderPreloaded)
     }
-  }, [backgroundSettings.url, viewer])
+  }, [backgroundSettings.url, viewer, preloadObjects, setObjects])
 
   /**
    * Update state of canvas - cursor and OpenSeadragon manipulation.
@@ -230,7 +251,7 @@ const OpenSeaDragonCanvas = ({
    */
   useEffect(() => {
     /**
-     * Store information about newly reated rectangle object.
+     * Store information about newly created rectangle object.
      * @param {Object} rectangle
      */
     const createOSDRectangle = (rectangle) => {

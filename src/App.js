@@ -16,6 +16,7 @@ import ModalAbout from './components/ModalAbout'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 import Tooltip from './components/ToolTooltip'
+import { saveFile, openFile, getFileName } from './utils/fileHandling'
 
 const App = () => {
   // Draggable error silenter.
@@ -24,7 +25,9 @@ const App = () => {
   const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
-  const [backgroundSettings, setBackgroundSettings] = useState({ lrx: 0, lry: 0, fileName: null, url: null })
+  const [backgroundSettings, setBackgroundSettings] = useState({
+    lrx: 0, lry: 0, fileName: null, url: null, reset: true, fileNameWithoutExtension: null
+  })
   // Store current state of the editor.
   const [currentAction, setCurrentAction] = useState({ toolName: 'hand', callback: null, event: null })
   // This state is used to store the current state of dragging, so when user
@@ -32,6 +35,7 @@ const App = () => {
   const [isDragging, setisDragging] = useState(false)
   // This state is used to store all objects that were drew by user.
   const [objects, setObjects] = useState([])
+  const [preloadObjects, setPreoloadObjects] = useState([])
   // Store code-block theme
   const [codeTheme, setCodeTheme] = useState(stackoverflowLight)
   // List of available tool callbacks.
@@ -57,10 +61,17 @@ const App = () => {
       action: () => setModal('ModalNew')
     }, {
       name: 'Open...',
-      action: () => {}
+      action: () => openFile(loadObjectsCanvas)
     }, {}, {
       name: 'Save...',
-      action: () => {}
+      action: () => saveFile(
+        `${backgroundSettings.fileName}.ima`, {
+          objects: objects.map(obj => obj.export),
+          mode: mode,
+          fileName: backgroundSettings.fileName,
+          backgroundURL: mode === 'Canvas' ? backgroundSettings.imgData : backgroundSettings.url,
+          fileVersion: '1.0'
+      })
     }, {}, {
       name: 'Refresh',
       action: () => window.location.reload()
@@ -97,11 +108,36 @@ const App = () => {
       action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool', '_blank')
     }]
   }]
+  /**
+   * Load file from backup
+   */
+  const loadObjectsCanvas = (storedFileContent) => {
+    const storedData = JSON.parse(storedFileContent)
+    // Reset already existing data.
+    setObjects([])
+    setPreoloadObjects([])
+    // Load content coresponding to the file.
+    if (storedData.mode === 'OpenSeaCanvas' && storedData.backgroundURL) {
+      setMode('OpenSeaCanvas')
+      const filename = getFileName(storedData.backgroundURL)
+      setBackgroundSettings({ url: storedData.backgroundURL, fileName: filename })
+      // toolCallbacks.current.restoreObjects(storedData.objects)
+    } else if (storedData.mode === 'Canvas') {
+      setMode('Canvas')
+      setBackgroundSettings({ imgData: storedData.backgroundURL, fileName: storedData.fileName, reset: false })
+    }
+    // Preload stored objects
+    setPreoloadObjects(storedData.objects)
+    // Close any modals
+    setModal(null)
+  }
+  // Set canvas components
   const canvasComponents = {
     Canvas,
     OpenSeaCanvas
   }
   const SelectedCanvas = canvasComponents[mode]
+  // Set current modal
   const modalComponents = {
     ModalNew,
     ModalOpenUrl,
@@ -109,14 +145,10 @@ const App = () => {
     ModalAbout
   }
   const SelectedModal = modalComponents[modal]
-
+  // Close modal
   const closeModal = () => setModal(null)
 
-  const handleOpenUrl = () => {
-    setModal(null)
-    setModal('ModalOpenUrl')
-  }
-
+  // Toggle app fullscreen
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       setFullScreen(true)
@@ -157,39 +189,21 @@ const App = () => {
   }, [])
 
   /**
-   * Get file name of the image
-   * @param {string} filePath
-   * @returns {string}
-  */
-  const getFileName = (filePath) => {
-    const startIndex = (filePath.indexOf('\\') >= 0
-      ? filePath.lastIndexOf('\\')
-      : filePath.lastIndexOf('/'))
-
-    return filePath.substring(startIndex + 1)
-  }
-
-  /**
    * Choose a background file from the file system.
   */
-  const handleOpenFile = () => {
+  const handleOpenFile = (data, fileName) => {
+    setObjects([])
+    setPreoloadObjects([])
+    setBackgroundSettings(state => ({
+      ...state,
+      fileName: fileName,
+      imgData: data,
+      reset: true,
+      fileNameWithoutExtension: fileName.substring(0, fileName.lastIndexOf('.'))
+    }))
+    document.title = `${fileName} - Image Annotation Tool`
     closeModal()
     setMode('Canvas')
-    const file = document.createElement('input')
-    file.type = 'file'
-    file.accept = '.png, .jpg, .jpeg, .gif, .heic'
-    file.click()
-    file.addEventListener('change', item => {
-      const reader = new FileReader()
-      const fileName = getFileName(item.target.value)
-      reader.onload = (result) => {
-        setBackgroundSettings(state => (
-          { ...state, fileName: fileName, imgUrl: result.target.result }
-        ))
-        document.title = `${fileName} - Image Annotation Tool`
-      }
-      reader.readAsDataURL(file.files[0])
-    })
   }
 
   const openUrl = (url) => {
@@ -315,6 +329,7 @@ const toolDescription = {
         setCurrentAction={setCurrentAction}
         toolCallbacks={toolCallbacks}
         temporaryObjectApparance={temporaryObjectApparance}
+        preloadObjects={preloadObjects}
       />
       <Draggable
         onStart={() => setisDragging(true)}
@@ -419,14 +434,11 @@ const toolDescription = {
           </div>
         </div>
       </Draggable>}
-      <div className='footer'>
-        This project was developed by <a href='https://rocek.dev' target='_blank' rel='noreferrer'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>. The project is licensed under the EUPL license.
-      </div>
       {modal && <Modal>
         <SelectedModal
           closeModal={closeModal}
-          handleOpenFile={handleOpenFile}
-          handleOpenUrl={handleOpenUrl}
+          handleOpenFile={openFile.bind(null, handleOpenFile, ['.png', '.jpg', '.gif', '.bmp'], 'image')}
+          handleOpenUrl={() => setModal('ModalOpenUrl')}
           openUrl={openUrl}
           doneCallback={() => setModal('ModalNew')}
         />

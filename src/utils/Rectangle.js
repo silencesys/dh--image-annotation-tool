@@ -31,6 +31,22 @@ class Rectangle extends Path2D {
     return this._originalApparance
   }
 
+  get export () {
+    return {
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+      scale: this.scale,
+      strokeStyle: this.strokeStyle,
+      fillStyle: this.fillStyle,
+      lineWidth: this.lineWidth,
+      apperance: this._originalApparance,
+      centre: this._centre,
+      name: this._name
+    }
+  }
+
   copyApparance (apparance) {
     this._originalApparance.strokeStyle = apparance.strokeStyle
     this._originalApparance.fillStyle = apparance.fillStyle

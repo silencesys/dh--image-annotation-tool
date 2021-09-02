@@ -208,20 +208,6 @@ body {
   background-color: rgba(var(--red-500));
   color: rgb(var(--white-button));
 }
-.footer {
-  position: absolute;
-  bottom: 3rem;
-  left: 3rem;
-  z-index: 0;
-  font-size: .8rem;
-  color:rgb(var(--grey-400));
-}
-.footer a {
-  color:rgb(var(--grey-400));
-}
-.footer a:hover {
-  color: rgb(var(--blue-500));
-}
 
 .openSeaDragon {
   width: 100vw;

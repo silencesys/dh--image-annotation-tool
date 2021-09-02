@@ -1,0 +1,14 @@
+.ModalAbout {
+  max-width: 400px;
+}
+.ModalAbout p {
+  font-size: 1rem;
+  line-height: 1.6rem;
+  color: rgb(var(--grey-500));
+}
+.ModalAbout p a {
+  color:rgb(var(--grey-500));
+}
+.ModalAbout p a:hover {
+  color: rgb(var(--blue-500));
+}

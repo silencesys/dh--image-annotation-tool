@@ -13,7 +13,8 @@ const Canvas = ({
   setBackgroundSettings,
   toolCallbacks,
   objectApparance,
-  temporaryObjectApparance
+  temporaryObjectApparance,
+  preloadObjects
 }) => {
   // This layer is used to store the background image
   const backgroundLayer = useRef()
@@ -88,6 +89,21 @@ const Canvas = ({
     }
   }, [])
 
+  useEffect(() => {
+    const storeMethods = {
+      rectangle: (rect) => {
+        return new Rectangle({ x: rect.x, y: rect.y, width: rect.width, height: rect.height }, rect.scale, rect.apperance)},
+      polygon: (poly) => {
+        return new Polygon(poly.points, poly.scale, poly.apperance)
+      }
+    }
+    const savedObjects = preloadObjects.map(object => {
+      return storeMethods[object.name.toLowerCase()](object)
+    })
+
+    setObjects(savedObjects)
+  }, [preloadObjects, setObjects])
+
   /**
    * Change cursor when tools are selected.
    */
@@ -154,32 +170,35 @@ const Canvas = ({
           storageLayer.current.height = naturalHeight
           storageLayer.current.width = naturalWidth
 
-          setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
-
           const context = backgroundLayer.current.getContext('2d', { alpha: false })
           context.imageSmoothingEnabled = false
           context.drawImage(image, 0, 0, naturalWidth, naturalHeight)
 
           canvasWrapper.current.style.display = 'block'
+          setBackgroundSettings(state => ({ ...state, lrx: naturalWidth, lry: naturalHeight }))
         }
       } catch (e) {
         // @TODO: add fail
       }
     }
-    drawImageInBackgroundLayer(backgroundSettings.imgUrl)
-    toolCallbacks.current.handleResetCanvas()
-  }, [backgroundSettings.imgUrl, setBackgroundSettings, toolCallbacks])
+    drawImageInBackgroundLayer(backgroundSettings.imgData)
+    if (backgroundSettings.reset) {
+      toolCallbacks.current.handleResetCanvas()
+    }
+  }, [backgroundSettings.imgData, setBackgroundSettings, toolCallbacks, backgroundSettings.reset])
 
   /**
    * Scale and position the canvas when the image is loaded.
   */
   useEffect(() => {
-    instance.current.panTo({ originX: -(backgroundSettings.lrx / 2) + (window.innerWidth / 2), originY: -(backgroundSettings.lry / 2) + (window.innerHeight / 2), scale: 1 })
-    const scaleWidth = (window.innerWidth - 100) / backgroundSettings.lrx
-    const scaleHeight = (window.innerHeight - 100) / backgroundSettings.lry
-    const scale = Math.min(scaleWidth, scaleHeight)
-    instance.current.zoomTo({ newScale: scale, x: window.innerWidth / 2, y: window.innerHeight / 2 })
-  }, [backgroundSettings])
+    if (backgroundSettings.lry && backgroundSettings.lrx) {
+      instance.current.panTo({ originX: -(backgroundSettings.lrx / 2) + (window.innerWidth / 2), originY: -(backgroundSettings.lry / 2) + (window.innerHeight / 2), scale: 1 })
+      const scaleWidth = (window.innerWidth - 100) / backgroundSettings.lrx
+      const scaleHeight = (window.innerHeight - 100) / backgroundSettings.lry
+      const scale = Math.min(scaleWidth, scaleHeight)
+      instance.current.zoomTo({ newScale: scale, x: window.innerWidth / 2, y: window.innerHeight / 2 })
+    }
+  }, [backgroundSettings.lry, backgroundSettings.lrx])
 
   /**
    * Register an effect that will be triggered each time an array of drawn objects
@@ -295,7 +314,6 @@ const Canvas = ({
           setSelectedObject(null)
           storageLayer.current.style.cursor = 'default'
           setObjects(state => {
-            console.log(object)
             state[index].resetColors()
             return [...state]
           })

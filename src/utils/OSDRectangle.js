@@ -10,6 +10,20 @@ class OSDRectangle {
     this._overlayHandler = null
   }
 
+  get export () {
+    return {
+      rectangle: this._rectangle,
+      element: this._element,
+      scaled: this._scaledRectangle,
+      name: this._name,
+      apparance: {
+        fill: this._element.style.backgroundColor,
+        stroke: this._element.style.borderColor,
+        strokeWidth: this._element.style.borderStyle
+      }
+    }
+  }
+
   get name () {
     return this._name
   }
