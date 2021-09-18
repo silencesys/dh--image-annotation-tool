@@ -21,7 +21,7 @@ const ModalFeedback = ({
     fetch('/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: encodeFormContent({ 'form-name': 'questions', ...formContent })
+      body: encodeFormContent({ 'form-name': 'feedback', ...formContent })
     })
       .then(() => {
         setFormContent({ name: '', email: '', message: '' })
