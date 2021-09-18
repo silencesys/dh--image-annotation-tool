@@ -4,9 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes } from '@fortawesome/pro-regular-svg-icons'
 import style from './ModalFeedback.module.css'
 
-const ModalFeedback = (
+const ModalFeedback = ({
   closeModal = () => {}
-) => {
+}) => {
   const [formContent, setFormContent] = useState({ name: '', email: '', message: '' })
   const [formSubmitted, setFormSubmitted] = useState(false)
 
