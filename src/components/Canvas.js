@@ -97,7 +97,7 @@ const Canvas = ({
         return new Polygon(poly.points, poly.scale, poly.apperance)
       }
     }
-    const savedObjects = preloadObjects.map(object => {
+    const savedObjects = preloadObjects.map(object => {
       return storeMethods[object.name.toLowerCase()](object)
     })
 

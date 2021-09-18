@@ -1,6 +1,14 @@
 .ModalAbout {
   max-width: 400px;
 }
+.ModalTitle {
+  display: flex;
+  align-items: center;
+}
+.ModalAboutIcon {
+  width: 64px;
+  margin-right: 2rem;
+}
 .ModalAbout p {
   font-size: 1rem;
   line-height: 1.6rem;
@@ -11,4 +19,7 @@
 }
 .ModalAbout p a:hover {
   color: rgb(var(--blue-500));
+}
+.ModalAbout p.Version {
+  font-size: .8rem;
 }

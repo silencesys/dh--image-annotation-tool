@@ -4,13 +4,13 @@ import { faCheck } from '@fortawesome/pro-solid-svg-icons'
 
 const MenuBar = ({
   menuItems
-}) => {
+}) => {
   const menu = menuItems.map((item, index) => {
     const subMenu = item?.items?.map((subItem, subIndex) => {
           if (typeof subItem.action === 'function') {
             return (<li className={style.SubMenuItem} key={subIndex}>
               <button className={style.ButtonSecondary} onClick={subItem.action}>
-                {subItem.status && <FontAwesomeIcon icon={faCheck} className={style.ButtonSecondary__Icon} />}
+                {subItem.status && <FontAwesomeIcon icon={faCheck} className={style.ButtonSecondary__Icon} />}
                 {subItem.name}
               </button>
             </li>)
@@ -25,7 +25,7 @@ const MenuBar = ({
         <button className={style.Button} onClick={item.action}>
           {item.name}
         </button>
-        {item.items && <ul className={style.SubMenu}>
+        {item.items && <ul className={style.SubMenu}>
         {subMenu}
         </ul>}
       </li>

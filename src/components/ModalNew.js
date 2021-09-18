@@ -6,8 +6,8 @@ import style from './ModalNew.module.css'
 const ModalNew = ({
   handleOpenFile = () => {},
   handleOpenUrl = () => {},
-  closeModal = () => {},
-}) => {
+  closeModal = () => {}
+}) => {
   return (
     <div className={style.ModalNew__Content}>
       <div className={style.ModalNew__TitleBar}>

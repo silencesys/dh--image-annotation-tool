@@ -1,0 +1,54 @@
+.Modal {
+  width: 700px;
+}
+.Form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 3rem;
+}
+.Form label {
+  display: block;
+  margin-bottom: .5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+    font-size: 1rem;
+}
+.Form input,
+.Form textarea {
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-size: 1rem;
+  padding: .5rem;
+  border-radius: .25rem;
+  border: 1px solid rgb(var(--grey-200));
+}
+.Optional {
+  font-size: .8rem;
+  color: rgb(var(--grey-400));
+}
+.Form input:focus,
+.Form textarea:focus {
+  outline: none;
+  border: 1px solid rgb(var(--grey-400));
+}
+.Form__TwoColumnSpan {
+  grid-column-start: 1;
+  grid-column-end: 3;
+}
+.ButtonSubmit {
+  background-color: rgb(var(--blue-500));
+  color: rgb(var(--white));
+  border: none;
+  border: 2px solid rgb(var(--blue-500));
+  padding: .5rem 1rem;
+  border-radius: 1rem;
+  transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ButtonSubmit:hover {
+  background-color: rgb(var(--red-500));
+  border-color: rgb(var(--red-500));
+  color: rgb(var(--white));
+}

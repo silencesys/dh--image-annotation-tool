@@ -13,6 +13,7 @@ import ModalNew from './components/ModalNew'
 import ModalOpenUrl from './components/ModalOpenUrl'
 import ModalWhatsNew from './components/ModalWhatsNew'
 import ModalAbout from './components/ModalAbout'
+import ModalFeedback from './components/ModalFeedback'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 import Tooltip from './components/ToolTooltip'
@@ -61,47 +62,47 @@ const App = () => {
       action: () => setModal('ModalNew')
     }, {
       name: 'Open...',
-      action: () => openFile(loadObjectsCanvas)
+      action: () => openFile(loadObjectsCanvas)
     }, {}, {
       name: 'Save...',
-      action: () => saveFile(
+      action: () => saveFile(
         `${backgroundSettings.fileName}.ima`, {
-          objects: objects.map(obj => obj.export),
+          objects: objects.map(obj => obj.export),
           mode: mode,
           fileName: backgroundSettings.fileName,
           backgroundURL: mode === 'Canvas' ? backgroundSettings.imgData : backgroundSettings.url,
           fileVersion: '1.0'
-      })
+        })
     }, {}, {
       name: 'Refresh',
-      action: () => window.location.reload()
+      action: () => window.location.reload()
     }]
-  },{
+  }, {
     name: 'View',
     items: [{
-        name: `${fullScreen ? 'Exit' : 'Enter'} Fullscreen`,
-        action: () => toggleFullScreen()
-      }
+      name: `${fullScreen ? 'Exit' : 'Enter'} Fullscreen`,
+      action: () => toggleFullScreen()
+    }
     ]
   }, {
     name: 'Window',
     items: [{
-        name: 'Code Pane',
-        action: () => setCodePaneVisible(state => !state),
-        status: codePaneVisible
-      }
+      name: 'Code Pane',
+      action: () => setCodePaneVisible(state => !state),
+      status: codePaneVisible
+    }
     ]
   }, {
     name: 'Help',
     items: [{
       name: 'What\'s New...',
-      action:  () => setModal('ModalWhatsNew')
+      action: () => setModal('ModalWhatsNew')
     }, {}, {
       name: 'About IMA',
-      action: () =>  setModal('ModalAbout')
+      action: () => setModal('ModalAbout')
     }, {}, {
       name: 'Send feedback',
-      action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool/issues', '_blank')
+      action: () => setModal('ModalFeedback')
     }, {
       name: 'GitHub',
       action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool', '_blank')
@@ -141,7 +142,8 @@ const App = () => {
     ModalNew,
     ModalOpenUrl,
     ModalWhatsNew,
-    ModalAbout
+    ModalAbout,
+    ModalFeedback
   }
   const SelectedModal = modalComponents[modal]
   // Close modal
@@ -225,8 +227,6 @@ const App = () => {
     }
     navigator.clipboard.writeText(text)
   }
-
-
   /**
    * Select a tool from the toolbar.
    * @param {Object} event - The event that triggered the action.
@@ -252,6 +252,7 @@ const App = () => {
     const fillStyle = hexToRGBA(color, 0.5)
     const strokeStyle = hexToRGBA(color)
 
+    // eslint-disable-next-line no-undef
     const event = new CustomEvent('colorUpdate', { detail: { fillStyle, strokeStyle } })
     srcElement.dispatchEvent(event)
 
@@ -281,38 +282,38 @@ const App = () => {
   }).join('') + `  </surface>
 </facsimile>`
 
-const toolDescription = {
-  cursor: {
-    name: 'Move tool',
-    description: 'Move drew objects on the canvas.',
-    img: '/tooltip/cursor.gif'
-  },
-  zoom: {
-    name: 'Zoom tool',
-    description: 'Zoom in and out on an image. Hold [CTRL] or right-click to zoom out.',
-    img: '/tooltip/zoom.gif'
-  },
-  rectangle: {
-    name: 'Rectangle tool',
-    description: 'Click and drag to draw a rectangle.',
-    img: '/tooltip/rectangle.gif'
-  },
-  eraser: {
-    name: 'Eraser tool',
-    description: 'Click on drew objects on the canvas to remove them.',
-    img: '/tooltip/eraser.gif'
-  },
-  hand: {
-    name: 'Hand tool',
-    description: 'Pans over different parts of an image',
-    img: '/tooltip/pan.gif'
-  },
-  polygon: {
-    name: 'Polygon tool',
-    description: 'Click to canvas to add points, click again on this button to finish drawing.',
-    img: '/tooltip/polygon.gif'
+  const toolDescription = {
+    cursor: {
+      name: 'Move tool',
+      description: 'Move drew objects on the canvas.',
+      img: '/tooltip/cursor.gif'
+    },
+    zoom: {
+      name: 'Zoom tool',
+      description: 'Zoom in and out on an image. Hold [CTRL] or right-click to zoom out.',
+      img: '/tooltip/zoom.gif'
+    },
+    rectangle: {
+      name: 'Rectangle tool',
+      description: 'Click and drag to draw a rectangle.',
+      img: '/tooltip/rectangle.gif'
+    },
+    eraser: {
+      name: 'Eraser tool',
+      description: 'Click on drew objects on the canvas to remove them.',
+      img: '/tooltip/eraser.gif'
+    },
+    hand: {
+      name: 'Hand tool',
+      description: 'Pans over different parts of an image',
+      img: '/tooltip/pan.gif'
+    },
+    polygon: {
+      name: 'Polygon tool',
+      description: 'Click to canvas to add points, click again on this button to finish drawing.',
+      img: '/tooltip/polygon.gif'
+    }
   }
-}
 
   return (
     <div className={currentAction.toolName}>
@@ -433,13 +434,13 @@ const toolDescription = {
           </div>
         </div>
       </Draggable>}
-      {modal && <Modal>
+      {modal && <Modal>
         <SelectedModal
           closeModal={closeModal}
           handleOpenFile={openFile.bind(null, handleOpenFile, ['.png', '.jpg', '.gif', '.bmp'], 'image')}
-          handleOpenUrl={() => setModal('ModalOpenUrl')}
+          handleOpenUrl={() => setModal('ModalOpenUrl')}
           openUrl={openUrl}
-          doneCallback={() => setModal('ModalNew')}
+          doneCallback={() => setModal('ModalNew')}
         />
       </Modal>}
     </div>

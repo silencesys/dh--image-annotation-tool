@@ -4,8 +4,8 @@ import { faTimes } from '@fortawesome/pro-regular-svg-icons'
 import style from './ModalOpenUrl.module.css'
 
 const ModalOpenUrl = ({
-  closeModal = () => {},
-  openUrl = () => {}
+  closeModal = () => {},
+  openUrl = () => {}
 }) => {
   const [url, setUrl] = useState('')
 
@@ -44,7 +44,7 @@ const ModalOpenUrl = ({
         value={url}
         onChange={handleChange}
       />
-      <button className={style.ModalOpenUrl__Button} onClick={() => openUrl(url)}>
+      <button className={style.ModalOpenUrl__Button} onClick={() => openUrl(url)}>
         Open
       </button>
     </div>

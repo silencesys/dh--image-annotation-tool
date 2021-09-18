@@ -59,7 +59,7 @@ const OpenSeaDragonCanvas = ({
   /**
    * Open new image when background settings change.
   */
-  useEffect(() => {
+  useEffect(() => {
     const renderPreloaded = () => {
         viewer.clearOverlays()
         preloadObjects.forEach(object => {
@@ -186,8 +186,8 @@ const OpenSeaDragonCanvas = ({
     }
 
     return () => {
-      document.removeEventListener('keydown', () => {})
-      document.removeEventListener('keyup', () => {})
+      document.removeEventListener('keydown', () => {})
+      document.removeEventListener('keyup', () => {})
     }
   }, [currentAction, cursorMap, viewer])
 

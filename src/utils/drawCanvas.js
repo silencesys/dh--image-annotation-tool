@@ -44,7 +44,7 @@ function drawRectangle (canvas, callback) {
       canvas.updateOverlay(drag.overlayElement, location)
     },
     releaseHandler: (event) => {
-      if (drag && drag.location) {
+      if (drag && drag.location) {
         try {
           callback(drag)
         } catch (e) {

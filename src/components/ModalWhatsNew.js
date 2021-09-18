@@ -5,9 +5,9 @@ import style from './ModalWhatsNew.module.css'
 import content from '../content/whats-new.json'
 
 const ModalWhatsNew = ({
-  closeModal = () => {},
+  closeModal = () => {},
   doneCallback = null
-}) => {
+}) => {
   const [selectedNewIndex, setSelectedNewIndex] = useState(0)
   const visibleContent = content.slice(0, 5)
 
@@ -34,14 +34,14 @@ const ModalWhatsNew = ({
         <ul className={style.ButtonList}>
           {visibleContent.map(({ title, slug }, index) => (
             <li key={slug}>
-              <button className={`${style.ButtonList__Button} ${index === selectedNewIndex && style.ButtonList__Button_Active}`} onClick={() => setSelectedNewIndex(index)}>
+              <button className={`${style.ButtonList__Button} ${index === selectedNewIndex && style.ButtonList__Button_Active}`} onClick={() => setSelectedNewIndex(index)}>
                 {title}
               </button>
             </li>
           ))}
         </ul>
         <div>
-          {selectedNewIndex < visibleContent.length - 1 ? <button className={style.Modal__SidePane__Button} onClick={() => setSelectedNewIndex(state => state + 1)}>
+          {selectedNewIndex < visibleContent.length - 1 ? <button className={style.Modal__SidePane__Button} onClick={() => setSelectedNewIndex(state => state + 1)}>
             Next
           </button> :
           <button className={style.Modal__SidePane__Button} onClick={closeThisModal}>
