@@ -1,7 +1,7 @@
 {
-  "name": "tei-images",
-  "version": "2.0.0-beta",
-  "description": "A library for working with TEI images",
+  "name": "ima-image-annotation-tool",
+  "version": "2.0.0",
+  "description": "A library to mark zones on images and generate TEI XML valid code.",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
