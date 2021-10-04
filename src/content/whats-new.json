@@ -1,4 +1,9 @@
 [{
+  "title": "See marked zones in JSON",
+  "slug": "json-export",
+  "cover": "/whats-new/json-export.png",
+  "content": "IMA now supports displaying marked zones in JSON format. You can find it under the Window menu above."
+}, {
   "title": "IIIF and DZI support",
   "slug": "iiif-support",
   "cover": "/whats-new/iiif-support.png",

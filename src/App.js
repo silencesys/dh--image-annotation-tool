@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import SyntaxHighlighter from 'react-syntax-highlighter'
 import { stackoverflowLight, stackoverflowDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClipboard, faEraser, faMousePointer, faSearch, faHandPaper, faDrawSquare, faDrawPolygon } from '@fortawesome/pro-duotone-svg-icons'
+import { faEraser, faMousePointer, faSearch, faHandPaper, faDrawSquare, faDrawPolygon } from '@fortawesome/pro-duotone-svg-icons'
 import './App.css'
 import Canvas from './components/Canvas'
 import OpenSeaCanvas from './components/OpenSeaDragon'
@@ -14,15 +13,16 @@ import ModalOpenUrl from './components/ModalOpenUrl'
 import ModalWhatsNew from './components/ModalWhatsNew'
 import ModalAbout from './components/ModalAbout'
 import ModalFeedback from './components/ModalFeedback'
+import JSONToolbar from './components/ToolbarJSON'
 import config from './utils/constants/config'
 import { convertHexToRgb, convertRgbToHex } from './utils/colors'
 import Tooltip from './components/ToolTooltip'
 import { saveFile, openFile, getFileName } from './utils/fileHandling'
+import TEIToolbar from './components/ToolbarTEI'
 
 const App = () => {
   // Draggable error silenter.
   const toolBar = useRef(null)
-  const optionPane = useRef(null)
   const colorPicker = useRef(null)
   // This state is used to store the current information about size of canvas
   // and name of the file that was used as a background image.
@@ -52,8 +52,7 @@ const App = () => {
     fillStyle: config.temporaryFill, strokeStyle: config.temporaryStrokeFill, lineWidth: 3
   }), [])
   const [modal, setModal] = useState('ModalWhatsNew')
-  // Code pane visibility
-  const [codePaneVisible, setCodePaneVisible] = useState(false)
+  const [windows, setWindows] = useState([])
   // Menu items
   const menuItems = [{
     name: 'File',
@@ -87,9 +86,13 @@ const App = () => {
   }, {
     name: 'Window',
     items: [{
-      name: 'Code Pane',
-      action: () => setCodePaneVisible(state => !state),
-      status: codePaneVisible
+      name: 'XML TEI',
+      action: () => showWindow('XML TEI', TEIToolbar, code),
+      status: windows.find(win => win.name === 'XML TEI')
+    }, {
+      name: 'JSON',
+      action: () => showWindow('JSON', JSONToolbar, objects),
+      status: windows.find(win => win.name === 'JSON')
     }
     ]
   }, {
@@ -108,6 +111,7 @@ const App = () => {
       action: () => window.open('https://github.com/silencesys/dh--image-annotation-tool', '_blank')
     }]
   }]
+
   /**
    * Load file from backup
    */
@@ -148,6 +152,22 @@ const App = () => {
   const SelectedModal = modalComponents[modal]
   // Close modal
   const closeModal = () => setModal(null)
+
+  // Window visibility
+  const showWindow = (windowName, element, content) => {
+    if (!windows.find(win => win.name === windowName)) {
+      setWindows(state => {
+        return [...state, { name: windowName, element, content }]
+      })
+    } else {
+      closeWindow(windowName)
+    }
+  }
+  const closeWindow = (windowName) => {
+    setWindows(state => {
+      return state.filter(win => win.name !== windowName)
+    })
+  }
 
   // Toggle app fullscreen
   const toggleFullScreen = () => {
@@ -215,17 +235,6 @@ const App = () => {
       setMode('OpenSeaCanvas')
       setModal(null)
     }
-  }
-
-  /**
-   * Copy code snippet to clipboard.
-   * @param {string} text - The code to copy.
-   */
-  const copyTextToClipboard = (text) => {
-    if (!navigator.clipboard) {
-      return
-    }
-    navigator.clipboard.writeText(text)
   }
   /**
    * Select a tool from the toolbar.
@@ -404,36 +413,20 @@ const App = () => {
           </div>
         </div>
       </Draggable>
-      {codePaneVisible && <Draggable
-        onStart={() => setisDragging(true)}
-        onStop={() => setisDragging(false)}
-        handle='.optionsPane__Head'
-        bounds='body'
-        nodeRef={optionPane}
-      >
-        <div className='optionsPane' ref={optionPane}>
-          <header className='optionsPane__Head' />
-          <div>
-            <SyntaxHighlighter
-              language='xml'
-              className='optionsPane__pre'
-              style={codeTheme}
-              showLineNumbers
-            >
-              {code}
-            </SyntaxHighlighter>
-          </div>
-          <p className='optionsPane__Description'>
-            You should use <span className='code'>@facs</span> attribute to align transcription with the image.
-          </p>
-          <div className='optionsPane__ButtonRow'>
-            <button className='optoinsPane__ClipboardButton' onClick={() => copyTextToClipboard(code)}>
-              <FontAwesomeIcon icon={faClipboard} className='optionsPane__ClipboardButton__Icon' />
-              Copy to clipboard
-            </button>
-          </div>
-        </div>
-      </Draggable>}
+      {windows && windows.map(({ element: Element, content, name }) => {
+        return (
+          <Element
+            key={name}
+            name={name}
+            content={objects}
+            close={closeWindow.bind(null, name)}
+            theme={codeTheme}
+            code={code} // @TODO: Remove this when I decide how to pass other options down
+            onStart={() => setisDragging(true)}
+            onStop={() => setisDragging(false)}
+          />
+        )
+      })}
       {modal && <Modal>
         <SelectedModal
           closeModal={closeModal}

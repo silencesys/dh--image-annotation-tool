@@ -1,0 +1,20 @@
+.Code {
+  height: 100%;
+  margin: 0;
+}
+.Button {
+  position: fixed;
+  top: 55px;
+  right: 5px;
+  font-size: 1rem;
+  background: none;
+  border: none;
+  color: rgba(var(--white-button), .6);
+  width: 25px;
+  height: 25px;
+  z-index: 9;
+}
+.Button:hover {
+  background-color: rgb(var(--grey-200));
+  color: rgb(var(--white-button));
+}

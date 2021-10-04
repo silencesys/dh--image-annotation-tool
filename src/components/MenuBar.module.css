@@ -80,7 +80,7 @@
   padding: .5rem;
 }
 .ButtonSecondary:hover {
-  color: rgb(var(--white));
+  color: rgb(var(--white-button));
   background-color: rgb(var(--blue-500));
 }
 .ButtonSecondary__Icon {

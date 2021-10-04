@@ -49,7 +49,7 @@
 }
 .ModalNew__ChoiceButton {
   align-content: center;
-  background-color: rgba(var(--blue-500), .1);
+  background-color: rgba(var(--blue-500), .2);
   border: 1px solid rgba(var(--blue-500), .15);
   border-radius: .5rem;
   color: rgb(var(--blue-500));
@@ -59,6 +59,7 @@
   margin-bottom: 1rem;
   padding: 2rem 1rem;
   transition: all .3s ease;
+  font-weight: bold;
   width: 100%;
 }
 .ModalNew__ChoiceButton:hover {
