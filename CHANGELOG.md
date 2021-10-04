@@ -1,5 +1,13 @@
 # Image Annotation Tool
 
+## 2.1.1 &#8239;&#8239;&#8239;&#8239; 🗓 2021-10-04
+
+### New Features
+* Show marked zones in JSON format.
+
+### Fixes and changes
+* Small images are now sharepened in the browser.
+
 ## 1.2.1 &#8239;&#8239;&#8239;&#8239; 🗓 2021-08-25
 ### Fixes and changes
 * The color input was hidden and replaced with custom-styled element.
