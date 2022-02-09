@@ -1,5 +1,6 @@
 .ModalAbout {
-  max-width: 400px;
+  max-width: 800px;
+  box-sizing: border-box;
 }
 .ModalTitle {
   display: flex;
@@ -22,4 +23,18 @@
 }
 .ModalAbout p.Version {
   font-size: .8rem;
+}
+.Logo {
+  display: block;
+}
+.LogoBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 0 3rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 1rem 0;
+  height: 100%;
 }

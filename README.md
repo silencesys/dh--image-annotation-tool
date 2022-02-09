@@ -33,7 +33,12 @@ cd ImageAnnotationTool
 npm install
 ```
 
-Next you can run the application. 
+Next you can run the application.
+
+```bash
+npm run start
+```
+
 The application is running on port 3000.
 
 

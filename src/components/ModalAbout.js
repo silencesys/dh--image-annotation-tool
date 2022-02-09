@@ -22,6 +22,14 @@ const ModalAbout = ({
           This project was developed by <a href='https://rocek.dev' target='_blank' rel='noreferrer'>Martin Roček</a>, source code is available on <a href='https://github.com/silencesys/dh--image-annotation-tool' target='_blank' rel='noreferrer'>GitHub</a>.
         </p>
         <p>
+          The project is supported by
+          <div className={style.LogoBox}>
+            <img src='/Lindat-Logo.png' alt='Lindat logo' className={style.Logo} />
+            <img src='/msmt.png' alt='Lindat logo' className={style.Logo} />
+            <img src='/ffuk.png' alt='Lindat logo' className={style.Logo} />
+          </div>
+        </p>
+        <p>
           The project is licensed under the <a href='https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12' target='_blank' rel='noreferrer'>EUPL license</a>.
         </p>
         <p className={style.Version}>
